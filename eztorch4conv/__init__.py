@@ -2,7 +2,6 @@
 
 # Add imports here
 from .eztorch4conv import *
-import torch
 
 # Handle versioneer
 from ._version import get_versions
