@@ -1,80 +1,43 @@
-"""Provide the primary functions."""
+"""
+Docustring
+"""
+import sys
+import torch
+import torch.nn as nn
+import pandas as pd
+import os
+import random
+from torch.utils.data import Dataset
+import json
+import sys
 
-
-def canvas(with_attribution=True):
+def parse_inputs(path_to_arguments):
     """
-    Placeholder function to show example docstring (NumPy format).
-
-    Replace this function and doc string for your own project.
+    Function to parse the file with the hyper-parameters of the network.
 
     Parameters
     ----------
-    with_attribution : bool, Optional, default: True
-        Set whether or not to display who the quote is from.
-
+    path_to_arguments : string
+                        Contains the path to a '.json' that will describe the hyper-parameters 
+                        of the network
+    
     Returns
     -------
-    quote : str
-        Compiled string including quote and optional attribution.
+    input_parameters : dictionary with some of the hyper-parameters
+                        "model_name": Name of the model (will be used to save the information),
+                        "batch_size": Batch size,
+                        "num_epochs": Number of epochs of training, 
+                        "learning_rate": Learning Rate,
+                        "weight_decay": Weight decay for L2 Regularization,
+                        "num_classes": Number of different categories that the data is separated into, 
+                        "num_channels": Number of channels used,
+                        "dataset_proportion": ,
+                        "device":
     """
+    path_to_arguments = sys.argv[1]
 
-    quote = "The code is but a canvas to our imagination."
-    if with_attribution:
-        quote += "\n\t- Adapted from Henry David Thoreau"
-    return quote
-
-
-BATCH_SIZE = 5
-NUM_EPOCHS = 10 
-LEARNING_RATE = 0.001
-WEIGHT_DECAY = 5e-4
-
-def parse_inputs(arguments):
-    parameters = ["--batch_size", "--epochs", "--learning_rate", "--weight_decay"]
-    input_parameters = {"--batch_size": BATCH_SIZE,
-                        "--epochs": NUM_EPOCHS,
-                        "--learning_rate": LEARNING_RATE,
-                        "--weight_decay": WEIGHT_DECAY,
-                        "--simple": True}
-
-    for i in range(1,len(arguments),2):
-        input_parameters[arguments[i]] = arguments[i+1]
-    
-    
-    return input_parameters
-
-
-class CustomDataset(Dataset):
-    def __init__(self, annotations_file, model_name):
-        self.labels = pd.read_csv(annotations_file)
-        self.labels = self.labels.sample(frac=1).reset_index(drop=True)
-        majority = self.labels["Binding"].value_counts()[0]
-        minority = self.labels["Binding"].value_counts()[1]
-        difference = majority - minority * 0.5
-        total = majority + minority
-        correction = difference / total
-        for idx, _ in self.labels[self.labels["Binding"] == 0].iterrows():
-            if random.random() < correction:
-                self.labels.drop(idx, axis=0, inplace=True)
-
-        for idx, _ in self.labels.iterrows():
-        	if random.random() < 0.95:
-
-        		self.labels.drop(idx, axis=0, inplace=True)
-        output = self.labels["Binding"].value_counts()
-        os.system(f"touch ./Training_logs/dcnn_{model_name}.txt")
-        with open(f"./Training_logs/dcnn_{model_name}.txt","a") as fo:
-            fo.write(f"{output}\n")
-        
-    def __len__(self):
-        return len(self.labels)
-    
-    def __getitem__(self, idx):
-        # Suffle df to mitigate overfitting
-        self.labels = self.labels.sample(frac=1).reset_index(drop=True)  
-        image = torch.load(self.labels.iloc[idx, 0])
-        label = self.labels.iloc[idx, 1]
-        return image, label
+    with open(path_to_arguments, 'r') as j:
+        return json.loads(j.read())
 
 class conv3d():
     def __init__(self, in_channels, out_channels, conv_kernel, conv_padding=1, 
