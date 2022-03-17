@@ -5,7 +5,7 @@ eztorch4conv
 [![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/eztorch4conv/branch/master/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/eztorch4conv/branch/master)
 
 
-Out of the box torch classes to easily design and train DCNN and MC-DCNN models
+A Python package with out of the box pytorch classes to easily design and train DCNN and MC-DCNN models
 
 ### Copyright
 
