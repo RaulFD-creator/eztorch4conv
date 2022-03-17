@@ -1,4 +1,4 @@
-"""Out of the box torch classes to easily design and train DCNN and MC-DCNN models"""
+"""A Python package with out of the box torch classes to easily design and train DCNN and MC-DCNN models"""
 
 # Add imports here
 from .eztorch4conv import *
