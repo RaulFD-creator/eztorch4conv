@@ -1,101 +1,10 @@
 """
 Docustring
 """
-import sys
 import torch
 import torch.nn as nn
-from torch.nn import Flatten as flatten
 import os
-import json
-import sys
-
-def parse_inputs(path_to_arguments):
-    """
-    Function to parse the file with the hyper-parameters of the network.
-
-    Parameters
-    ----------
-    path_to_arguments : string
-                        Contains the path to a '.json' that will describe the hyper-parameters 
-                        of the network
-    
-    Returns
-    -------
-    input_parameters : dictionary with some of the hyper-parameters
-                        "model_name": Name of the model (will be used to save the information),
-                        "batch_size": Batch size,
-                        "num_epochs": Number of epochs of training, 
-                        "learning_rate": Learning Rate,
-                        "weight_decay": Weight decay for L2 Regularization,
-                        "num_classes": Number of different categories that the data is separated into, 
-                        "num_channels": Number of channels used,
-                        "dataset_proportion": ,
-                        "device": CPU ('cpu') or GPU ('cuda'). By default, it will check if there is GPU
-                                    available and use it; if not available, will use CPU.
-    """
-    path_to_arguments = sys.argv[1]
-
-    with open(path_to_arguments, 'r') as j:
-        return json.loads(j.read())
-
-class conv3d():
-    def __init__(self, in_channels, out_channels, conv_kernel, conv_padding=1, 
-                pooling_type='max', pooling_kernel=2, dropout=0.25):
-
-        self.conv = nn.Conv3d(in_channels=in_channels, out_channels=out_channels,
-                                kernel_size=conv_kernel, padding=conv_padding)
-        self.leaky_relu = nn.LeakyReLU()
-        self.dropout = nn.Dropout(dropout)
-
-        if str(pooling_type).lower() != "none":
-            if pooling_type.lower() == "max":
-                self.pooling = nn.MaxPool3d(pooling_kernel)
-            elif pooling_type.lower() == "avg":
-                self.pooling = nn.AvgPool3d(pooling_kernel)
-        else:
-            self.pooling = None
-
-    def build_layer(self):
-        if self.pooling is not None:
-            return nn.Sequential(self.conv, self.leaky_relu, self.pooling, self.dropout)
-        else:
-            return nn.Sequential(self.conv, self.leaky_relu, self.dropout)
-
-class dense():
-    def __init__(self, in_features, out_features, dropout=0.4):
-
-        self.linear = nn.Linear(in_features=in_features, out_features=out_features)
-        self.leaky_relu = nn.LeakyReLU()
-        self.dropout = nn.Dropout(dropout)
-
-    def build_layer(self):
-            return nn.Sequential(self.linear, self.leaky_relu, self.dropout)
-
-class early_stop():
-
-    def __init__(self, metric, target):
-        self.metric = metric
-        self.target = target
-
-    def check_condition(self, params):
-
-        if self.metric != 'loss' and params[self.metric] >= self.target:
-            return True
-
-        elif self.metric == 'loss' and params[self.metric] <= self.target:
-            return True
-
-        else:
-            return False
-
-    def __str__(self):
-        return 'early_stop'
-
-class checkpoint(early_stop):
-
-    def __str__(self):
-        return 'checkpoint'
-
+from callbacks import *
 
 class DCNN(nn.Module):
     def __init__(self, name, path):
@@ -114,15 +23,12 @@ class DCNN(nn.Module):
         self.callbacks = []
         self.save = os.path.join(path, name)
         self.float()
-    
+
     def add_callback(self, other):
         self.callbacks.append(other)
     
     def add_layer(self, other):
-        if other is not flatten:
-            self.layers.append(other.build_layer())
-        else:
-            self.layers.append(other)
+        self.layers.append(other.build_layer())
     
     def define_loss(self, other):
         self.error = other
@@ -196,7 +102,7 @@ class DCNN(nn.Module):
 
                 print(f"Epoch {epoch}/{self.num_epochs}: Batch {i}/{len_training//self.batch_size} \tLoss: {loss.data}")
 
-            # Calculate Accuracy         
+            # Calculate metrics         
             correct = 0
             incorrect = 0
             total = 0
@@ -205,7 +111,7 @@ class DCNN(nn.Module):
             TN = 0
             FP = 0
 
-            # Iterate through test dataset
+            # Iterate through validation dataset
             for images, labels in validate_dataloader:
                 
                 test = torch.autograd.Variable(images.view(len(images),6,16,16,16))
@@ -241,6 +147,7 @@ class DCNN(nn.Module):
                 self.accuracy_list.append(accuracy)
                 self.params['accuracy'].append(accuracy)
                 self.params['loss'].append(loss)
+
                 try:
                     self.params['TP'].append(TP)
                 except KeyError:
@@ -264,7 +171,6 @@ class DCNN(nn.Module):
             # Print Loss
             print(f"{self.params}")
             self.check_callbacks()
-
             
         self.save_model(True)
     

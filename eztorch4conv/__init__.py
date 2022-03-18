@@ -2,6 +2,9 @@
 
 # Add imports here
 from .eztorch4conv import *
+from .layers import *
+from .callbacks import *
+from .utils import *
 
 # Handle versioneer
 from ._version import get_versions
