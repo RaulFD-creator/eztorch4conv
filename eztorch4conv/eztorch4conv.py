@@ -4,10 +4,25 @@ Docustring
 import torch
 import torch.nn as nn
 import os
-from callbacks import *
+from .callbacks import *
+
+class Channel(nn.Module):
+    def __init__(self):
+
+        super(Channel, self).__init__()
+
+        self.layers = nn.ModuleList()
+
+    def add_layer(self, other):
+        self.layers.append(other.build_layer())
+
+    def forward(self, x):
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
 class DCNN(nn.Module):
-    def __init__(self, name, path):
+    def __init__(self, name, path='./'):
 
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
@@ -23,6 +38,7 @@ class DCNN(nn.Module):
         self.callbacks = []
         self.save = os.path.join(path, name)
         self.float()
+        self.params = {}
 
     def add_callback(self, other):
         self.callbacks.append(other)
@@ -37,20 +53,21 @@ class DCNN(nn.Module):
         self.optimizer = other
 
     def forward(self, x):
-        
+
         for layer in self.layers:
             x = layer(x)
         return x
 
     def save_model(self, final=False):
-        torch.save(self, os.path.join(self.save, ".pt"))
-        os.system(f"touch {os.path.join(self.save, '.log')}")
-        with open(os.path.join(self.save, ".log"), "a") as fo:
-            fo.write(self.params)
+
+        torch.save(self, self.save + ".pt")
+        os.system(f"touch {self.save + '.log'}")
+        with open(self.save + ".log", "a") as fo:
+            fo.write(f"{self.params}")
         
         if final:
-            os.system(f"touch {os.path.join(self.save, '.data')}")
-            with open(os.path.join(self.save, ".data"), "a") as fo:
+            os.system(f"touch {self.save + '.data'}")
+            with open(self.save + ".data", "a") as fo:
                 for metric in self.metrics:
                     fo.write(f"{metric},\t")
                 fo.write(f"\n")
@@ -74,6 +91,7 @@ class DCNN(nn.Module):
 
     def train(self, train_dataloader, validate_dataloader, len_training, 
                 epochs, batch_size, metrics=["accuracy", "loss"]):
+
         self.params = {}
         self.metrics = metrics
         for metric in self.metrics:
@@ -173,25 +191,10 @@ class DCNN(nn.Module):
             self.check_callbacks()
             
         self.save_model(True)
-    
-class Channel(nn.Module):
-    def __init__(self):
-
-        super(Channel, self).__init__()
-
-        self.layers = nn.ModuleList()
-
-    def add_layer(self, other):
-        self.layers.append(other.build_layer())
-
-    def forward(self, x):
-        for layer in self.layers:
-            x = layer(x)
-        return x
 
 class MCDCNN(DCNN):
 
-    def __init__(self, n_channels):
+    def __init__(self, n_channels, name, path):
 
         super(DCNN, self).__init__()
 
@@ -205,6 +208,9 @@ class MCDCNN(DCNN):
         self.channels = nn.ModuleList()
         self.n_channels = n_channels
         self.layers = nn.ModuleList()
+        self.name = name
+        self.save = path
+        self.params = {}
 
         self.float()
 
@@ -218,13 +224,6 @@ class MCDCNN(DCNN):
         else:
             for channel in channels:
                 channel.add_layer(layer)
-    
-    def add_layer(self, layer):
-        self.layers.append(layer.build_layer())
-    
-
-    def save_model(self, filename):
-        torch.save(self, filename)
     
     def forward(self, x):
         outs = []
