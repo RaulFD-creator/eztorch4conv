@@ -71,8 +71,34 @@ class dense():
     def build_layer(self):
             return nn.Sequential(self.linear, self.leaky_relu, self.dropout)
 
+class early_stop():
+
+    def __init__(self, metric, target):
+        self.metric = metric
+        self.target = target
+
+    def check_condition(self, params):
+
+        if self.metric != 'loss' and params[self.metric] >= self.target:
+            return True
+
+        elif self.metric == 'loss' and params[self.metric] <= self.target:
+            return True
+
+        else:
+            return False
+
+    def __str__(self):
+        return 'early_stop'
+
+class checkpoint(early_stop):
+
+    def __str__(self):
+        return 'checkpoint'
+
+
 class DCNN(nn.Module):
-    def __init__(self, name):
+    def __init__(self, name, path):
 
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
@@ -85,7 +111,12 @@ class DCNN(nn.Module):
         self.loss_val_list = []
         self.iteration_list = []
         self.accuracy_val_list = []
+        self.callbacks = []
+        self.save = os.path.join(path, name)
         self.float()
+    
+    def add_callback(self, other):
+        self.callbacks.append(other)
     
     def add_layer(self, other):
         if other is not flatten:
@@ -105,11 +136,42 @@ class DCNN(nn.Module):
             x = layer(x)
         return x
 
-    def save_model(self, path):
-        torch.save(self, os.path.join(path, self.name, ".pt"))
+    def save_model(self, final=False):
+        torch.save(self, os.path.join(self.save, ".pt"))
+        os.system(f"touch {os.path.join(self.save, '.log')}")
+        with open(os.path.join(self.save, ".log"), "a") as fo:
+            fo.write(self.params)
+        
+        if final:
+            os.system(f"touch {os.path.join(self.save, '.data')}")
+            with open(os.path.join(self.save, ".data"), "a") as fo:
+                for metric in self.metrics:
+                    fo.write(f"{metric},\t")
+                fo.write(f"\n")
+
+                for i in range(len(self.params['loss'])):
+                    for metric in self.metrics:
+                        fo.write(f"{self.params[metric][i]},\t")
+                    fo.write(f"\n")
+
+    
+    def check_callbacks(self):
+        for callback in self.callbacks:
+                if callback is early_stop and callback.check_condition(self.params):
+                    print(f"Stopping training and saving model because taget ({callback.metric}) has been achieved ({self.params[callback.metric]}/{callback.taget})")
+                    self.save_model(True)
+                    break
+                if callback is checkpoint and callback.check_conditions(self.params):
+                    print(f"Saving model because target {callback.metric} has been achieved ({self.params[callback.metric]}/{callback.taget})")
+                    self.save_model()
+
 
     def train(self, train_dataloader, validate_dataloader, len_training, 
-                epochs, batch_size):
+                epochs, batch_size, metrics=["accuracy", "loss"]):
+        self.params = {}
+        self.metrics = metrics
+        for metric in self.metrics:
+            self.params[metric] = []
         print(f"Training Model using device: {self.device}")
 
         self.num_epochs = epochs
@@ -136,39 +198,76 @@ class DCNN(nn.Module):
 
             # Calculate Accuracy         
             correct = 0
+            incorrect = 0
             total = 0
+            TP = 0
+            FN = 0
+            TN = 0
+            FP = 0
+
             # Iterate through test dataset
             for images, labels in validate_dataloader:
                 
                 test = torch.autograd.Variable(images.view(len(images),6,16,16,16))
+
                 # Forward propagation
                 outputs = self(test.float().to(self.device))
+
                 # Get predictions from the maximum value
                 for idx in range(len(labels)):
                     if outputs[idx] > 0.5 and labels[idx] == 1:
                         correct += 1
+                        TP += 1
+
+                    elif outputs[idx] < 0.5 and labels[idx] == 1:
+                        incorrect += 1
+                        FN += 1
+
                     elif outputs[idx] < 0.5 and labels[idx] == 0:
                         correct += 1
-                
-                # Total number of labels
-                total += len(labels)
+                        TN += 1
+                    
+                    elif outputs[idx] > 0.5 and labels[idx] == 0:
+                        incorrect += 1
+                        FP += 1
 
+                # Total number of labels
+                total = len(labels)
                 accuracy = 100 * correct / float(total)
                 
                 # store loss and iteration
                 self.loss_list.append(loss.data)
                 self.iteration_list.append(self.count)
                 self.accuracy_list.append(accuracy)
+                self.params['accuracy'].append(accuracy)
+                self.params['loss'].append(loss)
+                try:
+                    self.params['TP'].append(TP)
+                except KeyError:
+                    continue
+
+                try:
+                    self.params['FP'].append(FP)
+                except KeyError:
+                    continue
+
+                try:
+                    self.params['TN'].append(TN)
+                except KeyError:
+                    continue
+
+                try:
+                    self.params['FN'].append(FN)
+                except KeyError:
+                    continue
 
             # Print Loss
-            print(f"Loss training: {loss.data}  Validation accuracy: {accuracy}")
+            print(f"{self.params}")
+            self.check_callbacks()
 
-            if accuracy > 80 and self.count > 10:
-                # Callback
-                self.save_model(accuracy)
-                
-        self.save_model(accuracy)
-
+            
+        self.save_model(True)
+    
 class Channel(nn.Module):
     def __init__(self):
 
