@@ -8,13 +8,13 @@ import sys
 import pytest
 
 import eztorch4conv
-
+from eztorch4conv import *
 
 def test_eztorch4conv_imported():
     """Sample test, will always pass so long as import statement worked."""
     assert "eztorch4conv" in sys.modules
-    model = DCNN("model1")
-    model2 = MC-DCNN(3,"model2")
+    model = DCNN("model1", "./")
+    model2 = MCDCNN(3,"model2", "./")
     model.add_layer(conv3d(1,2,3))
     model.add_layer(flatten())
     model.add_layer(dense(40))
