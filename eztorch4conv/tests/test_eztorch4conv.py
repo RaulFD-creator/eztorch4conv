@@ -17,7 +17,7 @@ def test_eztorch4conv_imported():
     model2 = MCDCNN(3,"model2", "./")
     model.add_layer(conv3d(1,2,3))
     model.add_layer(flatten())
-    model.add_layer(dense(40))
+    model.add_layer(dense(40, 2))
     model2.add_layer_to(conv3d(1,2,3), channels="all")
     model2.add_layer(flatten())
     model2.add_layer(dense(40, 2))
