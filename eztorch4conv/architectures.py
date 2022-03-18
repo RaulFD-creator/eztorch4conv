@@ -156,7 +156,7 @@ class DCNN(nn.Module):
                         FP += 1
 
                 # Total number of labels
-                total = len(labels)
+                total += len(labels)
                 accuracy = 100 * correct / float(total)
                 
                 # store loss and iteration
