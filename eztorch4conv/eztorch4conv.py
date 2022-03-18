@@ -4,6 +4,7 @@ Docustring
 import sys
 import torch
 import torch.nn as nn
+from torch.nn import Flatten as flatten
 import os
 import json
 import sys
@@ -70,20 +71,13 @@ class dense():
     def build_layer(self):
             return nn.Sequential(self.linear, self.leaky_relu, self.dropout)
 
-class flatten():
-    def __init__(self, x):
-        self.x = x
-    def build_layer(self):
-        return nn.Sequential(self.x.view(self.x.size(0), -1))
-
-
 class DCNN(nn.Module):
-    def __init__(self):
+    def __init__(self, name):
 
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
 
-
+        self.name = name
         self.count = 0
         self.loss_list = []
         self.iteration_list = []
@@ -94,7 +88,10 @@ class DCNN(nn.Module):
         self.float()
     
     def add_layer(self, other):
-        self.layers.append(other.build_layer())
+        if other is not flatten:
+            self.layers.append(other.build_layer())
+        else:
+            self.layers.append(other)
     
     def define_loss(self, other):
         self.error = other
@@ -108,8 +105,8 @@ class DCNN(nn.Module):
             x = layer(x)
         return x
 
-    def save_model(self, filename):
-        torch.save(self, filename)
+    def save_model(self, path):
+        torch.save(self, os.path.join(path, self.name, ".pt"))
 
     def train(self, train_dataloader, validate_dataloader, len_training, 
                 epochs, batch_size):
@@ -210,8 +207,12 @@ class MCDCNN(DCNN):
             self.channels.extend([Channel()])
     
     def add_layer_to_channels(self, channels, layer):
-        for channel in channels:
-            channel.add_layer(layer)
+        if channels == "all":
+            for channel in self.channels:
+                channel.add_layer(layer)
+        else:
+            for channel in channels:
+                channel.add_layer(layer)
     
     def add_layer(self, layer):
         self.layers.append(layer.build_layer())
@@ -234,7 +235,6 @@ class MCDCNN(DCNN):
         for layer in self.layers:
             x = layer(x)
         return x
-
 
 if __name__ == "__main__":
     # Do something if this file is invoked on its own
