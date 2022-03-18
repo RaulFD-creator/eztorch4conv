@@ -1,5 +1,6 @@
 import torch.nn as nn
 from torch.nn import Flatten
+from torch.nn import Sigmoid
 
 class conv3d():
     def __init__(self, in_channels, out_channels, conv_kernel, conv_padding=1, 
@@ -36,5 +37,9 @@ class dense():
 
 class flatten(Flatten):
     
+    def build_layer(self):
+        return self
+    
+class sigmoid(Sigmoid):
     def build_layer(self):
         return self
