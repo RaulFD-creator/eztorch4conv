@@ -1,7 +1,7 @@
 """A Python package with out of the box torch classes to easily design and train DCNN and MC-DCNN models"""
 
 # Add imports here
-from .networks import *
+from .architectures import *
 from .layers import *
 from .callbacks import *
 from .utils import *
