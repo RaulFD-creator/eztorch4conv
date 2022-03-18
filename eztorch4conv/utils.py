@@ -1,7 +1,7 @@
 import sys
 import json
 
-def parse_inputs(self, path_to_arguments):
+def parse_inputs(path_to_arguments):
     """
     Function to parse the file with the hyper-parameters of the network.
 
