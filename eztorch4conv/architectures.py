@@ -163,36 +163,36 @@ class DCNN(nn.Module):
                         incorrect += 1
                         FP += 1
 
-                # Total number of labels
-                total += len(labels)
-                accuracy = 100 * correct / float(total)
-                
-                # store loss and iteration
-                self.loss_list.append(loss.data)
-                self.iteration_list.append(self.count)
-                self.accuracy_list.append(accuracy)
-                self.params['accuracy'].append(accuracy)
-                self.params['loss'].append(loss)
+            # Total number of labels
+            total += len(labels)
+            accuracy = 100 * correct / float(total)
+            
+            # store loss and iteration
+            self.loss_list.append(loss.data)
+            self.iteration_list.append(self.count)
+            self.accuracy_list.append(accuracy)
+            self.params['accuracy'].append(accuracy)
+            self.params['loss'].append(loss)
 
-                try:
-                    self.params['TP'].append(TP)
-                except KeyError:
-                    continue
+            try:
+                self.params['TP'].append(TP)
+            except KeyError:
+                continue
 
-                try:
-                    self.params['FP'].append(FP)
-                except KeyError:
-                    continue
+            try:
+                self.params['FP'].append(FP)
+            except KeyError:
+                continue
 
-                try:
-                    self.params['TN'].append(TN)
-                except KeyError:
-                    continue
+            try:
+                self.params['TN'].append(TN)
+            except KeyError:
+                continue
 
-                try:
-                    self.params['FN'].append(FN)
-                except KeyError:
-                    continue
+            try:
+                self.params['FN'].append(FN)
+            except KeyError:
+                continue
 
             # Print Loss
             print(f"{self.params}")
