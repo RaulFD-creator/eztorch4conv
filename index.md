@@ -1,4 +1,4 @@
-eztorch4conv: Easy creation of 3D Deep Convolutional Neural Networks (3D-DCNN) or Multi-channel DCNN (3D-MCDCNN)
+Easy creation of 3D Deep Convolutional Neural Networks (3D-DCNN) or Multi-channel DCNN (3D-MCDCNN)
 ==============================
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/RaulFD-creator/eztorch4conv/workflows/CI/badge.svg)](https://github.com/RaulFD-creator/eztorch4conv/actions?query=workflow%3ACI)
