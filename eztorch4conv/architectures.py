@@ -36,6 +36,8 @@ class DCNN(nn.Module):
         self.iteration_list = []
         self.accuracy_val_list = []
         self.callbacks = []
+        self.path = path
+        self.name = name
         self.save = os.path.join(path, name)
         self.float()
         self.params = {}
@@ -59,9 +61,13 @@ class DCNN(nn.Module):
         return x
 
     def save_model(self, final=False):
-
-        torch.save(self, self.save + ".pt")
-        os.system(f"touch {self.save + '.log'}")
+        previous_runs = -1
+        for file in os.listdir(self.path):
+            if file.split('.')[0] == self.name and file.split('.')[1] == 'pt':
+                previous_runs += 1
+        current_run = previous_runs + 1
+        torch.save(self, self.save + f"{current_run}.pt")
+        os.system(f"touch {self.save + f'{current_run}.log'}")
         with open(self.save + ".log", "a") as fo:
             fo.write(f"{self.params}")
         
@@ -69,7 +75,7 @@ class DCNN(nn.Module):
             os.system(f"touch {self.save + '.data'}")
             with open(self.save + ".data", "a") as fo:
                 for metric in self.metrics:
-                    fo.write(f"{metric},\t")
+                    fo.write(f"{metric}\t")
                 fo.write(f"\n")
 
                 for i in range(len(self.params['loss'])):
@@ -81,11 +87,13 @@ class DCNN(nn.Module):
     def check_callbacks(self):
         for callback in self.callbacks:
                 if callback is early_stop and callback.check_condition(self.params):
-                    print(f"Stopping training and saving model because taget ({callback.metric}) has been achieved ({self.params[callback.metric]}/{callback.taget})")
+                    print(f"Stopping training and saving model.")
+                    prtin(f"Target ({callback.metric}) has been achieved ({self.params[callback.metric]}/{callback.taget})")
                     self.save_model(True)
                     break
                 if callback is checkpoint and callback.check_conditions(self.params):
-                    print(f"Saving model because target {callback.metric} has been achieved ({self.params[callback.metric]}/{callback.taget})")
+                    print(f"Saving model")
+                    print(f"Target {callback.metric} has been achieved ({self.params[callback.metric]}/{callback.taget})")
                     self.save_model()
 
 
