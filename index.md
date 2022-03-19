@@ -1,37 +1,16 @@
-## Welcome to GitHub Pages
+Easy creation of 3D Deep Convolutional Neural Networks (3D-DCNN) or Multi-channel DCNN (3D-MCDCNN)
+==============================
+[//]: # (Badges)
+[![GitHub Actions Build Status](https://github.com/RaulFD-creator/eztorch4conv/workflows/CI/badge.svg)](https://github.com/RaulFD-creator/eztorch4conv/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/RaulFD-creator/eztorch4conv/branch/main/graph/badge.svg?token=U6t3PP1uZX)](https://codecov.io/gh/RaulFD-creator/eztorch4conv)
+
+A Python package with out of the box pytorch classes to easily design and train DCNN and MC-DCNN models. 
+
+Working on my Master's Thesis I found that there were not many easy to use implementation of MC-DCNN models or even DCNN in Pytorch. This package I hope will provide a clear user-friendly environment to simplify the Pytorch sintaxis by wrapping most of its functionality in easier to understand main classes. First stage of the development will be to introduce basic functionality for DCNN and MC-DCNN models. The original purpose of this package was to train these two types of networks for predicting binding sites in voxelized representations of proteins.
 
 You can use the [editor on GitHub](https://github.com/RaulFD-creator/eztorch4conv/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+### Copyright
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/RaulFD-creator/eztorch4conv/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+Copyright (c) 2022, Raúl Fernández Díaz
