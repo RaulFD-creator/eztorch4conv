@@ -4,6 +4,7 @@ Docustring
 import torch
 import torch.nn as nn
 import os
+import sys
 from .callbacks import *
 
 class Channel(nn.Module):
@@ -26,6 +27,11 @@ class DCNN(nn.Module):
 
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
+
+        try: os.mkdir(os.path.join(path, name))
+        except OSError: 
+            print(f"Directory could not be created. Exiting program")
+            sys.exit(1)
 
         self.name = name
         self.count = 0
