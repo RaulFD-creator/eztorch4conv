@@ -1,6 +1,7 @@
 """
 Docustring
 """
+from operator import ne
 import torch
 import torch.nn as nn
 import os
@@ -169,10 +170,19 @@ class DCNN(nn.Module):
                         FP += 1
 
             # Performance metrics
-            accuracy =  ((TN + TP) / (TP + TN + FP + FN)) * 100
-            precision = TP / (TP + FP)
-            negative_predictive_value = TN / (TN + FN)
-            sensitivity = TP / (TP + FN)  # Same as recall
+            accuracy =  ((TN + TP) / (TP + TN + FP + FN))  
+            try:
+                precision = TP / (TP + FP) 
+            except ZeroDivisionError:
+                precision = 1
+            try:
+                negative_predictive_value = TN / (TN + FN)
+            except ZeroDivisionError:
+                negative_predictive_value = 1
+            try:
+                sensitivity = TP / (TP + FN)  # Same as recall
+            except ZeroDivisionError:
+                sensitivity = 1
             f1 = (2 * precision * sensitivity) / (precision + sensitivity)
             f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
 
@@ -182,7 +192,7 @@ class DCNN(nn.Module):
             self.accuracy_list.append(accuracy)
             self.params['accuracy'].append(accuracy)
             self.params['loss'].append(loss)
-            print(f"Accuracy: {accuracy} %")
+            print(f"Accuracy: {accuracy}")
 
             try:
                 self.params['TP'].append(TP)
