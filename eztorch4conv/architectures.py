@@ -42,7 +42,7 @@ class DCNN(nn.Module):
         self.float()
         self.params = {}
     
-    def add_multiple_layers(self, other):
+    def add_many_layers(self, other):
         """
         other has to be a list of layers
         """
