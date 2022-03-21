@@ -42,9 +42,8 @@ class DCNN(nn.Module):
         self.iteration_list = []
         self.accuracy_val_list = []
         self.callbacks = []
-        self.path = path
+        self.path = os.path.join(path, name)
         self.name = name
-        self.save = os.path.join(path, name)
         self.float()
         self.params = {}
     
@@ -79,14 +78,14 @@ class DCNN(nn.Module):
             if file.split('.')[0] == self.name and file.split('.')[1] == 'pt':
                 previous_runs += 1
         current_run = previous_runs + 1
-        torch.save(self, self.save + f'{current_run}.pt')
+        torch.save(self, os.path.join(self.path, f'{current_run}.pt'))
         os.system(f"touch {self.save + f'{current_run}.log'}")
-        with open(self.save + ".log", "a") as fo:
+        with open(os.path.join(self.path, f'{self.name}.log'), "a") as fo:
             fo.write(f"{self.params}")
         
         if final:
             os.system(f"touch {self.save + '.data'}")
-            with open(self.save + ".data", "a") as fo:
+            with open(os.path.join(self.path, f'{self.name}.data'), "a") as fo:
                 for metric in self.metrics:
                     fo.write(f"{metric}\t")
                 fo.write(f"\n")
@@ -101,7 +100,7 @@ class DCNN(nn.Module):
         for callback in self.callbacks:
                 if callback is early_stop and callback.check_condition(self.params):
                     print(f"Stopping training and saving model.")
-                    prtin(f"Target ({callback.metric}) has been achieved ({self.params[callback.metric]}/{callback.taget})")
+                    print(f"Target ({callback.metric}) has been achieved ({self.params[callback.metric]}/{callback.taget})")
                     self.save_model(True)
                     break
                 if callback is checkpoint and callback.check_conditions(self.params):
