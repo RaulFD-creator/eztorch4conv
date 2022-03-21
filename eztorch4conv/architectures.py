@@ -79,12 +79,12 @@ class DCNN(nn.Module):
                 previous_runs += 1
         current_run = previous_runs + 1
         torch.save(self, os.path.join(self.path, f'{current_run}.pt'))
-        os.system(f"touch {self.save + f'{current_run}.log'}")
+        os.system(f"touch {os.path.join(self.path, f'{current_run}.pt')}")
         with open(os.path.join(self.path, f'{self.name}.log'), "a") as fo:
             fo.write(f"{self.params}")
         
         if final:
-            os.system(f"touch {self.save + '.data'}")
+            os.system(f"touch {os.path.join(self.path, f'{self.name}.data')}")
             with open(os.path.join(self.path, f'{self.name}.data'), "a") as fo:
                 for metric in self.metrics:
                     fo.write(f"{metric}\t")
@@ -141,9 +141,6 @@ class DCNN(nn.Module):
                 print(f"Epoch {epoch}/{self.num_epochs}: Batch {i}/{len_training//self.batch_size} \tLoss: {loss.data}")
 
             # Calculate metrics         
-            correct = 0
-            incorrect = 0
-            total = 0
             TP = 0
             FN = 0
             TN = 0
@@ -160,24 +157,19 @@ class DCNN(nn.Module):
                 # Get predictions from the maximum value
                 for idx in range(len(labels)):
                     if outputs[idx] > 0.5 and labels[idx] == 1:
-                        correct += 1
                         TP += 1
 
                     elif outputs[idx] < 0.5 and labels[idx] == 1:
-                        incorrect += 1
                         FN += 1
 
                     elif outputs[idx] < 0.5 and labels[idx] == 0:
-                        correct += 1
                         TN += 1
                     
                     elif outputs[idx] > 0.5 and labels[idx] == 0:
-                        incorrect += 1
                         FP += 1
 
             # Total number of labels
-            total += len(labels)
-            accuracy = 100 * correct / float(total)
+            accuracy =  ((TN + TP) / (TP + TN + FP + FN)) * 100
             
             # store loss and iteration
             self.loss_list.append(loss.data)
