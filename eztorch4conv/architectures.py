@@ -138,7 +138,7 @@ class DCNN(nn.Module):
                 
                 self.count += 1
 
-                print(f"Epoch {epoch+1}/{self.num_epochs}: Batch {i+1}/{len_training//self.batch_size} \tLoss: {loss.data}")
+                print(f"Epoch {epoch+1}/{self.num_epochs}: Batch {i}/{len_training//self.batch_size} \tLoss: {loss.data}")
 
             # Calculate metrics         
             TP = 0
