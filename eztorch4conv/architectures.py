@@ -168,9 +168,14 @@ class DCNN(nn.Module):
                     elif outputs[idx] > 0.5 and labels[idx] == 0:
                         FP += 1
 
-            # Total number of labels
+            # Performance metrics
             accuracy =  ((TN + TP) / (TP + TN + FP + FN)) * 100
-            
+            precision = TP / (TP + FP)
+            negative_predictive_value = TN / (TN + FN)
+            sensitivity = TP / (TP + FN)  # Same as recall
+            f1 = (2 * precision * sensitivity) / (precision + sensitivity)
+            f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
+
             # store loss and iteration
             self.loss_list.append(loss.data)
             self.iteration_list.append(self.count)
@@ -196,6 +201,34 @@ class DCNN(nn.Module):
 
             try:
                 self.params['FN'].append(FN)
+            except KeyError:
+                continue
+
+            try:
+                self.params['precision'].append(precision)
+            except KeyError:
+                continue
+
+            try:
+                self.params['negative_predictive_value'].append(negative_predictive_value)
+            except KeyError:
+                continue
+            
+            try:
+                self.params['sensitivity'].append(sensitivity)
+            except KeyError:
+                try:
+                    self.params['recall'].append(sensitivity)
+                except KeyError:
+                    continue
+            
+            try:
+                self.params['f1'].append(f1)
+            except KeyError:
+                continue
+
+            try:
+                self.params['f2'].append(f2)
             except KeyError:
                 continue
 
