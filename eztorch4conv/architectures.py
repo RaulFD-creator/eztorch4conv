@@ -91,7 +91,7 @@ class DCNN(nn.Module):
                     fo.write(f"{metric}\t")
                 fo.write(f"\n")
 
-                for i in range(len(self.params['loss'])):
+                for i in range(len(self.params['accuracy'])):
                     for metric in self.metrics:
                         fo.write(f"{self.params[metric][i]},\t")
                     fo.write(f"\n")
@@ -116,12 +116,15 @@ class DCNN(nn.Module):
         self.params = {}
         self.metrics = metrics
         for metric in self.metrics:
-            self.params[metric] = []
+            self.params[metric] = [0]
         print(f"Training Model using device: {self.device}")
 
         self.num_epochs = epochs
         self.batch_size = batch_size
         for epoch in range(self.num_epochs):
+            for metric in metrics:
+                print(self.params[metric][-1])    
+
             for i, (images, labels) in enumerate(train_dataloader):
                 
                 train = torch.autograd.Variable(images.view(len(images),6,16,16,16))
@@ -140,7 +143,7 @@ class DCNN(nn.Module):
                 self.count += 1
 
                 print(f"Epoch {epoch+1}/{self.num_epochs}: Batch {i}/{len_training//self.batch_size} \tLoss: {loss.data}")
-
+            
             # Calculate metrics         
             TP = 0
             FN = 0
@@ -192,8 +195,7 @@ class DCNN(nn.Module):
             self.accuracy_list.append(accuracy)
             self.params['accuracy'].append(accuracy)
             self.params['loss'].append(loss)
-            print(f"Accuracy: {accuracy}")
-
+            
             try:
                 self.params['TP'].append(TP)
             except KeyError:
@@ -208,7 +210,6 @@ class DCNN(nn.Module):
                 self.params['TN'].append(TN)
             except KeyError:
                 continue
-
             try:
                 self.params['FN'].append(FN)
             except KeyError:
@@ -223,7 +224,7 @@ class DCNN(nn.Module):
                 self.params['negative_predictive_value'].append(negative_predictive_value)
             except KeyError:
                 continue
-            
+
             try:
                 self.params['sensitivity'].append(sensitivity)
             except KeyError:
@@ -241,12 +242,8 @@ class DCNN(nn.Module):
                 self.params['f2'].append(f2)
             except KeyError:
                 continue
-
-            # Print Loss
-            print(f"{self.params}")
+        
             self.check_callbacks()
-
-            
         self.save_model(True)
 
 class MCDCNN(DCNN):
