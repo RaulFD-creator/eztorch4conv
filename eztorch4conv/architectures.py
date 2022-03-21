@@ -41,6 +41,13 @@ class DCNN(nn.Module):
         self.save = os.path.join(path, name)
         self.float()
         self.params = {}
+    
+    def add_multiple_layers(self, other):
+        """
+        other has to be a list of layers
+        """
+        for layer in other:
+            self.add_layer(layer)
 
     def add_callback(self, other):
         self.callbacks.append(other)
