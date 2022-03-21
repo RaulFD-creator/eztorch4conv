@@ -177,6 +177,7 @@ class DCNN(nn.Module):
             self.accuracy_list.append(accuracy)
             self.params['accuracy'].append(accuracy)
             self.params['loss'].append(loss)
+            print(f"Accuracy: {accuracy} %")
 
             try:
                 self.params['TP'].append(TP)
@@ -201,6 +202,7 @@ class DCNN(nn.Module):
             # Print Loss
             print(f"{self.params}")
             self.check_callbacks()
+
             
         self.save_model(True)
 
