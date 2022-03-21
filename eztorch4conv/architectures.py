@@ -73,7 +73,7 @@ class DCNN(nn.Module):
             if file.split('.')[0] == self.name and file.split('.')[1] == 'pt':
                 previous_runs += 1
         current_run = previous_runs + 1
-        torch.save(self, self.save + f"{current_run}.pt")
+        torch.save(self, self.save + f'{current_run}.pt')
         os.system(f"touch {self.save + f'{current_run}.log'}")
         with open(self.save + ".log", "a") as fo:
             fo.write(f"{self.params}")

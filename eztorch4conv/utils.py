@@ -1,4 +1,3 @@
-import sys
 import json
 
 def parse_inputs(path_to_arguments):
