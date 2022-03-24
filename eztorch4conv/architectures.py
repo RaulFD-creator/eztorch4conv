@@ -1,12 +1,10 @@
 """
 Docustring
 """
-from operator import ne
 import torch
 import torch.nn as nn
 import os
 import sys
-from .callbacks import *
 
 class Channel(nn.Module):
     def __init__(self):
@@ -36,12 +34,6 @@ class DCNN(nn.Module):
 
         self.name = name
         self.count = 0
-        self.loss_list = []
-        self.iteration_list = []
-        self.accuracy_list = []
-        self.loss_val_list = []
-        self.iteration_list = []
-        self.accuracy_val_list = []
         self.callbacks = []
         self.path = os.path.join(path, name)
         self.name = name
@@ -59,7 +51,7 @@ class DCNN(nn.Module):
         self.callbacks.append(other)
     
     def add_layer(self, other):
-        self.layers.append(other.build_layer())
+        self.layers.append(other.build_layer(self.layers[-1]))
     
     def define_loss(self, other):
         self.error = other
@@ -112,15 +104,7 @@ class DCNN(nn.Module):
     
     def check_callbacks(self):
         for callback in self.callbacks:
-                if callback is early_stop and callback.check_condition(self.params):
-                    print(f"Stopping training and saving model.")
-                    print(f"Target ({callback.metric}) has been achieved ({self.params[callback.metric]}/{callback.taget})")
-                    self.save_model(True)
-                    break
-                if callback is checkpoint and callback.check_conditions(self.params):
-                    print(f"Saving model")
-                    print(f"Target {callback.metric} has been achieved ({self.params[callback.metric]}/{callback.taget})")
-                    self.save_model()
+                callback.run()
 
 
     def train(self, train_dataloader, validate_dataloader, len_training, 
@@ -163,7 +147,7 @@ class DCNN(nn.Module):
                 self.scheduler.step()
             except:
                 continue
-            
+
             # Calculate metrics         
             TP = 0
             FN = 0
@@ -214,10 +198,6 @@ class DCNN(nn.Module):
                 f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
             except ZeroDivisionError:
                 f2 = 1
-            # store loss and iteration
-            self.loss_list.append(loss.data)
-            self.iteration_list.append(self.count)
-            self.accuracy_list.append(accuracy)
 
             self.params['accuracy'].append(accuracy)
             self.params['loss'].append(loss)
@@ -233,6 +213,7 @@ class DCNN(nn.Module):
             self.params['f2'].append(f2)
             self.print_params()
             self.check_callbacks()
+
         self.save_model(True)
 
 class MCDCNN(DCNN):
