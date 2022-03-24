@@ -66,6 +66,9 @@ class DCNN(nn.Module):
 
     def define_optimizer(self, other):
         self.optimizer = other
+    
+    def add_scheduler(self, other):
+        self.scheduler = other
 
     def forward(self, x):
 
@@ -95,6 +98,8 @@ class DCNN(nn.Module):
                     for metric in self.metrics:
                         fo.write(f"{self.params[metric][i]},\t")
                     fo.write(f"\n")
+            print("Stopping training ")
+            sys.exit(1)
 
     def print_params(self):
         print()
@@ -153,6 +158,11 @@ class DCNN(nn.Module):
                 self.count += 1
 
                 print(f"Epoch {epoch+1}/{self.num_epochs}: Batch {i}/{len_training//self.batch_size} \tLoss: {loss.data}")
+            
+            try:
+                self.scheduler.step()
+            except:
+                continue
             
             # Calculate metrics         
             TP = 0
