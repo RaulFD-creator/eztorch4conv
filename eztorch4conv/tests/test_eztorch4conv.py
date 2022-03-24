@@ -15,7 +15,7 @@ def test_eztorch4conv_imported():
     assert "eztorch4conv" in sys.modules
     model = DCNN("model1", "./")
     model2 = MCDCNN(3,"model2", "./")
-    model.add_layers(conv3d(2,3),
+    model.add_many_layers(conv3d(2,3),
                     flatten(),
                     dense(40),
                     early_stop(metric=["accuracy"],target=4),
