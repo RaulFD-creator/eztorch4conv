@@ -27,12 +27,20 @@ class DCNN(nn.Module):
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
 
-        try: os.mkdir(os.path.join(path, name))
+        try: 
+            os.mkdir(os.path.join(path, name))
+            self.name = name
+        
         except OSError: 
-            print(f"Directory could not be created. Exiting program")
-            sys.exit(1)
+            count = 0
+            for file in os.listdir:
+                if file == name:
+                    count += 1
+            new_name = name + '_' + str(count)
+            self.name = new_name
+            print(f"Directory already exists. Creating new directory: {os.path.join(path, new_name)}")
+            os.mkdir(os.path.join(path, name+new_name))
 
-        self.name = name
         self.count = 0
         self.callbacks = []
         self.path = os.path.join(path, name)
@@ -96,7 +104,7 @@ class DCNN(nn.Module):
     def print_params(self):
         print()
         os.system(f"touch {os.path.join(self.path, f'{self.name}_training.log')}")
-        with open(os.path.join(self.path, f'{self.name}_training.log')) as of:
+        with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
             for metric in self.metrics:
                 of.write(f"{self.params[metric][-1]},\t")
                 print(f"{metric}: {self.params[metric][-1]}") 
