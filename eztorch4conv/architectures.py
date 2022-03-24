@@ -97,8 +97,13 @@ class DCNN(nn.Module):
                     fo.write(f"\n")
 
     def print_params(self):
-        for metric in self.metrics:
-            print(f"{metric}: {self.params[metric][-1]}")  
+        print()
+        os.system(f"touch {os.path.join(self.path, f'{self.name}_training.log')}")
+        with open(os.path.join(self.path, f'{self.name}_training.log')) as of:
+            for metric in self.metrics:
+                of.write(f"{self.params[metric][-1]},\t")
+                print(f"{metric}: {self.params[metric][-1]}") 
+            print() 
     
     def check_callbacks(self):
         for callback in self.callbacks:
