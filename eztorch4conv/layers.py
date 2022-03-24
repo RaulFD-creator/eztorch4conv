@@ -4,7 +4,7 @@ from torch.nn import Sigmoid
 
 class layer():
     def __init__(self, model, neurons, conv_kernel=3, conv_padding=1, 
-                activation_function = nn.LeakyRelU(), pooling_type='max', pooling_kernel=2, 
+                activation_function = nn.LeakyReLU(), pooling_type='max', pooling_kernel=2, 
                 dropout=None):
         
         self.out_channels = neurons
