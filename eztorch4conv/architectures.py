@@ -43,7 +43,7 @@ class DCNN(nn.Module):
 
         self.count = 0
         self.callbacks = []
-        self.path = os.path.join(path, name)
+        self.path = os.path.join(path, self.name)
         self.name = name
         self.float()
         self.params = {}
