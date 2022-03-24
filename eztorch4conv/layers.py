@@ -4,7 +4,7 @@ from torch.nn import Sigmoid
 
 class layer():
     def __init__(self, model, neurons, conv_kernel=3, conv_padding=1, 
-                activation_function = nn.LeakyRelu(), pooling_type='max', pooling_kernel=2, 
+                activation_function = nn.LeakyRelU(), pooling_type='max', pooling_kernel=2, 
                 dropout=None):
         
         self.out_channels = neurons
@@ -116,9 +116,9 @@ class dense(layer):
         self.layer.append(nn.Linear(in_channels=in_channels, out_channels=self.out_channels))
 
 class flatten(Flatten):    
-    def build_layer(self):
+    def build_layer(self, prev_channels):
         return self
     
 class sigmoid(Sigmoid):
-    def build_layer(self):
+    def build_layer(self, prev_channels):
         return self
