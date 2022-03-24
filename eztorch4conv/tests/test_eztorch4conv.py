@@ -18,8 +18,8 @@ def test_eztorch4conv_imported():
     model.add_many_layers(conv3d(2,3),
                     flatten(),
                     dense(40),
-                    early_stop(metric=["accuracy"],target=4, model),
-                    checkpoint(metric=["accuracy"],target=4), model)
+                    early_stop(metric=["accuracy"],target=4, model=model),
+                    checkpoint(metric=["accuracy"],target=4), model=model)
     
     model2.add_layer_to_channels(layer=conv3d(2,3), channels="all")
     model2.add_layer(flatten())
