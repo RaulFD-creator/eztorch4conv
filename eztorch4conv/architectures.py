@@ -13,7 +13,7 @@ class Channel(nn.Module):
 
         self.layers = nn.ModuleList()
 
-    def add_layers(self, other):
+    def add_layer(self, other):
         if len(self.layers) != 0:        
             other.input_shape = prev_layer.calculate_output_shape()
         prev_layer = other
