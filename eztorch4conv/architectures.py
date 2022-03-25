@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import os
 import sys
+from .layers import flatten, sigmoid, conv3d
 
 class Channel(nn.Module):
     def __init__(self):
@@ -56,10 +57,16 @@ class DCNN(nn.Module):
             self.add_layer(layer)
 
     def add_callback(self, other):
-        self.callbacks.append(other)
+        for callback in other:
+            self.callbacks.append(callback)
     
     def add_layer(self, other):
-        self.layers.append(other.build_layer(self.layers[-1]))
+        for layer in other:
+            if layer.input_shape is not None:              
+                self.layer.input_shape = self.layers[-1].calculate_output_shape()
+            self.layers.append(layer.build_layer())
+
+        self.layers.append(other.build_layer())
     
     def define_loss(self, other):
         self.error = other
@@ -221,6 +228,7 @@ class DCNN(nn.Module):
             self.params['f2'].append(f2)
             self.print_params()
             self.check_callbacks()
+
 
         self.save_model(True)
 
