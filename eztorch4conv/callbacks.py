@@ -66,9 +66,17 @@ class Callback():
         if (self.metric != 'loss' and self.model.params[self.metric] >= self.target or
             self.metric == 'loss' and self.model.params[self.metric] <= self.target):
             return True
+        elif self.metric == 'epochs':
+                if len(self.model.params['loss']) % self.target == 0:
+                        return True
 
         else:
             return False
+
+    def action(self):
+        """
+        Customizable action, that can be introduced to create custom callbacks
+        """
 
     def run(self):
         """
