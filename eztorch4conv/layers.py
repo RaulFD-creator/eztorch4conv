@@ -5,7 +5,7 @@ from torch.nn import Sigmoid
 class layer():
     def __init__(self, neurons, conv_kernel=3, conv_padding=1, 
                 activation_function = nn.LeakyReLU(), pooling_type='max', pooling_kernel=2, 
-                dropout=0, input_shape=None):
+                dropout=None, input_shape=None):
 
         """
         Input shape should be a vector (n_channels, x, y, z)
@@ -24,7 +24,10 @@ class layer():
         
 
     def create_dropout(self):
-        self.dropout = nn.Dropout(self.dropout_proportion)
+        if self.dropout_proportion is not None:
+            self.dropout = nn.Dropout(self.dropout_proportion)
+        else:
+            self.dropout = nn.Dropout(0)
 
     def create_pooling(self):
         "For custom layers, this method has to be explictly programmed"
