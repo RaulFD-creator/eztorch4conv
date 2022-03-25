@@ -1,12 +1,10 @@
 """
 Docustring
 """
-from operator import ne
 import torch
 import torch.nn as nn
 import os
 import sys
-from .callbacks import *
 
 class Channel(nn.Module):
     def __init__(self):
@@ -29,36 +27,37 @@ class DCNN(nn.Module):
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
 
-        try: os.mkdir(os.path.join(path, name))
+        try: 
+            os.mkdir(os.path.join(path, name))
+            self.name = name
+        
         except OSError: 
-            print(f"Directory could not be created. Exiting program")
-            sys.exit(1)
+            count = 0
+            for file in os.listdir:
+                if file == name:
+                    count += 1
+            new_name = name + '_' + str(count)
+            self.name = new_name
+            print(f"Directory already exists. Creating new directory: {os.path.join(path, new_name)}")
+            os.mkdir(os.path.join(path, name+new_name))
 
-        self.name = name
         self.count = 0
-        self.loss_list = []
-        self.iteration_list = []
-        self.accuracy_list = []
-        self.loss_val_list = []
-        self.iteration_list = []
-        self.accuracy_val_list = []
         self.callbacks = []
-        self.path = os.path.join(path, name)
+        self.path = os.path.join(path, self.name)
         self.name = name
         self.float()
         self.params = {}
-    
-    def add_many_layers(self, other):
-        """
-        other has to be a list of layers
-        """
-        for layer in other:
-            self.add_layer(layer)
 
-    def add_callback(self, other):
-        self.callbacks.append(other)
+    def add_callbacks(self, other):
+        for callback in other:
+            self.callbacks.append(callback)
     
-    def add_layer(self, other):
+    def add_layers(self, other):
+        for layer in other:
+            if len(self.layers) == 0:              
+                self.layer.input_shape = self.layers[-1].calculate_output_shape()
+            self.layers.append(layer.build_layer())
+
         self.layers.append(other.build_layer())
     
     def define_loss(self, other):
@@ -66,6 +65,9 @@ class DCNN(nn.Module):
 
     def define_optimizer(self, other):
         self.optimizer = other
+    
+    def add_scheduler(self, other):
+        self.scheduler = other
 
     def forward(self, x):
 
@@ -95,27 +97,23 @@ class DCNN(nn.Module):
                     for metric in self.metrics:
                         fo.write(f"{self.params[metric][i]},\t")
                     fo.write(f"\n")
+            print("Stopping training ")
+            sys.exit(1)
 
     def print_params(self):
         print()
         os.system(f"touch {os.path.join(self.path, f'{self.name}_training.log')}")
-        #with open(os.path.join(self.path, f'{self.name}_training.log')) as of:
-        for metric in self.metrics:
-                #of.write(f"{self.params[metric][-1]},\t")
-            print(f"{metric}: {self.params[metric][-1]}") 
-        print() 
+
+        with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
+            for metric in self.metrics:
+                of.write(f"{self.params[metric][-1]},\t")
+                print(f"{metric}: {self.params[metric][-1]}") 
+            print() 
+
     
     def check_callbacks(self):
         for callback in self.callbacks:
-                if callback is early_stop and callback.check_condition(self.params):
-                    print(f"Stopping training and saving model.")
-                    print(f"Target ({callback.metric}) has been achieved ({self.params[callback.metric]}/{callback.taget})")
-                    self.save_model(True)
-                    break
-                if callback is checkpoint and callback.check_conditions(self.params):
-                    print(f"Saving model")
-                    print(f"Target {callback.metric} has been achieved ({self.params[callback.metric]}/{callback.taget})")
-                    self.save_model()
+                callback.run()
 
 
     def train(self, train_dataloader, validate_dataloader, len_training, 
@@ -154,6 +152,11 @@ class DCNN(nn.Module):
 
                 print(f"Epoch {epoch+1}/{self.num_epochs}: Batch {i}/{len_training//self.batch_size} \tLoss: {loss.data}")
             
+            try:
+                self.scheduler.step()
+            except:
+                continue
+
             # Calculate metrics         
             TP = 0
             FN = 0
@@ -204,10 +207,6 @@ class DCNN(nn.Module):
                 f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
             except ZeroDivisionError:
                 f2 = 1
-            # store loss and iteration
-            self.loss_list.append(loss.data)
-            self.iteration_list.append(self.count)
-            self.accuracy_list.append(accuracy)
 
             self.params['accuracy'].append(accuracy)
             self.params['loss'].append(loss)
@@ -223,6 +222,8 @@ class DCNN(nn.Module):
             self.params['f2'].append(f2)
             self.print_params()
             self.check_callbacks()
+
+
         self.save_model(True)
 
 class MCDCNN(DCNN):
