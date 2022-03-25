@@ -25,6 +25,6 @@ def test_eztorch4conv_imported():
     model2.add_layer_to_channels(layer=conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3),
                                  channels="all")
     model2.add_layers([flatten(),
-                        dense(40))
+                        dense(40)])
     
 
