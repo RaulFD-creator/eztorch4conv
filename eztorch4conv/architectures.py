@@ -62,6 +62,7 @@ class DCNN(nn.Module):
                 layer.input_shape = prev_layer.calculate_output_shape()
             prev_layer = layer
             self.layers.append(layer.build_layer())
+           
     
     def define_loss(self, other):
         self.error = other
