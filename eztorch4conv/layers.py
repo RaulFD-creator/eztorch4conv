@@ -3,10 +3,11 @@ from torch.nn import Flatten
 from torch.nn import Sigmoid
 
 class layer():
-    def __init__(self, model, neurons, conv_kernel=3, conv_padding=1, 
+    def __init__(self, model,  neurons, conv_kernel=3, conv_padding=1, 
                 activation_function = nn.LeakyRelU(), pooling_type='max', pooling_kernel=2, 
-                dropout=None):
-        
+                dropout=None, in_channels=None,):
+
+        self.in_channels = in_channels
         self.out_channels = neurons
         self.conv_kernel = conv_kernel
         self.conv_padding = conv_padding
@@ -34,8 +35,8 @@ class layer():
         else:
             self.pooling = None
     
-    def create_main_layer(self, in_channels):
-        self.layer.append(nn.Conv3d(in_channels=in_channels, out_channels=self.out_channels,
+    def create_main_layer(self):
+        self.layer.append(nn.Conv3d(in_channels=self.in_channels, out_channels=self.out_channels,
                                     kernel_size=self.conv_kernel, padding=self.conv_padding))
     
     def create_activation_function(self):
@@ -76,17 +77,11 @@ class layer():
             del(self.activation_functions)
         self.layer.append(self.activation_function)
 
-    def build_layer(self, prev_layer):
-        if prev_layer:
-            self.create_main_layer(prev_layer.out_channels)
-            self.create_dropout()
-            self.create_activation_function()
-            self.create_pooling()
-        else:
-            self.create_main_layer(self.model.channels)
-            self.create_dropout()
-            self.create_activation_function()
-            self.create_pooling()
+    def build_layer(self):
+        self.create_main_layer()
+        self.create_dropout()
+        self.create_activation_function()
+        self.create_pooling()
         return self.layer
 
 
@@ -101,24 +96,25 @@ class conv3d(layer):
         else:
             self.pooling = None
     
-    def create_main_layer(self, in_channels):
-        self.layer.append(nn.Conv3d(in_channels=in_channels, out_channels=self.out_channels,
+    def create_main_layer(self):
+        self.layer.append(nn.Conv3d(in_channels=self.in_channels, out_channels=self.out_channels,
                                     kernel_size=self.conv_kernel, padding=self.conv_padding))
     
 
 class dense(layer):
-    def __init__(self, out_features, dropout=None):
+    def __init__(self,  out_features, dropout=None, in_channels=None):
 
+        self.in_channels = in_channels
         self.out_features = out_features
         self.dropout = dropout
         
-    def create_main_layer(self, in_channels):
-        self.layer.append(nn.Linear(in_channels=in_channels, out_channels=self.out_channels))
+    def create_main_layer(self):
+        self.layer.append(nn.Linear(in_channels=self.in_channels, out_channels=self.out_channels))
 
 class flatten(Flatten):    
-    def build_layer(self, prev_channels):
+    def build_layer(self):
         return self
     
 class sigmoid(Sigmoid):
-    def build_layer(self, prev_channels):
+    def build_layer(self):
         return self
