@@ -57,6 +57,7 @@ class DCNN(nn.Module):
     def add_layers(self, other):
         for layer in other:
             if isinstance(layer, Callback):
+                self.layer.model = self
                 self.callbacks.append(layer)
             if layer.input_shape is not None:              
                 self.layer.input_shape = self.layers[-1].calculate_output_shape()

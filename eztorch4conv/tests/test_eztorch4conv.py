@@ -17,8 +17,8 @@ def test_eztorch4conv_imported():
     model.add_layers(conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3),
                     flatten(),
                     dense(40),
-                    early_stop(metric=["accuracy"],target=4, model=model),
-                    checkpoint(metric=["accuracy"],target=4), model=model)
+                    early_stop(metric=["accuracy"],target=4),
+                    checkpoint(metric=["accuracy"],target=4))
     
     model2 = MCDCNN(3,"model2", "./")
     model2.add_layer_to_channels(layer=conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3),

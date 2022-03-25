@@ -101,8 +101,6 @@ class conv3d(layer):
         z = self.input_shape[3] - 2 * 3 ** (self.conv_kernel - (self.conv_padding + 2))
         return (n_channels, x, y, z)
 
-    
-
 class dense(layer):
     def __init__(self,  out_features, dropout=None, in_channels=None):
 
