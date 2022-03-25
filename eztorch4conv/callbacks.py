@@ -30,7 +30,7 @@ class Callback():
             when the condition has been met
     """
 
-    def __init__(self, model, metric, target, action=None):
+    def __init__(self, metric, target, action=None):
         """
         Instanciates the class object
 
@@ -49,7 +49,6 @@ class Callback():
                 Function that describes the action the callback is supposed to perform
                 when the condition has been met
         """
-        self.model = model
         self.metric = metric
         self.target = target
         self.action = action
