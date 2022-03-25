@@ -5,8 +5,6 @@ import torch
 import torch.nn as nn
 import os
 import sys
-from .layers import flatten, sigmoid, conv3d
-from .callbacks import Callback
 
 class Channel(nn.Module):
     def __init__(self):
@@ -50,15 +48,12 @@ class DCNN(nn.Module):
         self.float()
         self.params = {}
 
-    def add_callback(self, other):
+    def add_callbacks(self, other):
         for callback in other:
             self.callbacks.append(callback)
     
     def add_layers(self, other):
         for layer in other:
-            if isinstance(layer, Callback):
-                self.layer.model = self
-                self.callbacks.append(layer)
             if layer.input_shape is not None:              
                 self.layer.input_shape = self.layers[-1].calculate_output_shape()
             self.layers.append(layer.build_layer())
