@@ -91,6 +91,7 @@ class conv3d(layer):
             self.pooling = None
     
     def create_main_layer(self):
+        self.in_channels = self.input_shape[0]
         self.layer.append(nn.Conv3d(in_channels=self.in_channels, out_channels=self.out_channels,
                                     kernel_size=self.conv_kernel, padding=self.conv_padding))
     
@@ -102,10 +103,10 @@ class conv3d(layer):
         return (n_channels, x, y, z)
 
 class dense(layer):
-    def __init__(self,  out_features, dropout=None, in_channels=None):
+    def __init__(self,  neurons, dropout=None, in_channels=None):
 
         self.in_channels = in_channels
-        self.out_features = out_features
+        self.out_features = neurons
         self.dropout = dropout
         
     def create_main_layer(self):

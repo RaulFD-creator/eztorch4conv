@@ -33,13 +33,13 @@ class DCNN(nn.Module):
         
         except OSError: 
             count = 0
-            for file in os.listdir:
+            for file in os.listdir():
                 if file == name:
                     count += 1
             new_name = name + '_' + str(count)
             self.name = new_name
             print(f"Directory already exists. Creating new directory: {os.path.join(path, new_name)}")
-            os.mkdir(os.path.join(path, name+new_name))
+            os.mkdir(os.path.join(path, new_name))
 
         self.count = 0
         self.callbacks = []
@@ -53,9 +53,12 @@ class DCNN(nn.Module):
             self.callbacks.append(callback)
     
     def add_layers(self, other):
+
         for layer in other:
-            if len(self.layers) == 0:              
-                self.layer.input_shape = self.layers[-1].calculate_output_shape()
+            if len(self.layers) != 0:        
+            	 
+                self.layer.input_shape = prev_layer.calculate_output_shape()
+            prev_layer = layer
             self.layers.append(layer.build_layer())
 
         self.layers.append(other.build_layer())
