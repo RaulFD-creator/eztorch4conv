@@ -14,11 +14,10 @@ class Channel(nn.Module):
         self.layers = nn.ModuleList()
 
     def add_layers(self, other):
-        for layer in other:
-            if len(self.layers) != 0:        
-                layer.input_shape = prev_layer.calculate_output_shape()
-            prev_layer = layer
-            self.layers.append(layer.build_layer())
+        if len(self.layers) != 0:        
+            layer.input_shape = prev_layer.calculate_output_shape()
+        prev_layer = layer
+        self.layers.append(layer.build_layer())
 
     def forward(self, x):
         for layer in self.layers:
