@@ -54,12 +54,13 @@ class DCNN(nn.Module):
             self.callbacks.append(callback)
     
     def add_layers(self, other):
-
         for layer in other:
+            print(layer)
             if len(self.layers) != 0:        
-                self.layer.input_shape = prev_layer.calculate_output_shape()
+                layer.input_shape = prev_layer.calculate_output_shape()
             prev_layer = layer
             self.layers.append(layer.build_layer())
+            print(layer.input_shape)
     
     def define_loss(self, other):
         self.error = other
@@ -73,6 +74,7 @@ class DCNN(nn.Module):
     def forward(self, x):
 
         for layer in self.layers:
+            print(layer)
             x = layer(x)
         return x
 

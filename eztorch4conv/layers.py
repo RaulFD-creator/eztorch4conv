@@ -5,7 +5,7 @@ from torch.nn import Sigmoid
 class layer():
     def __init__(self, neurons, conv_kernel=3, conv_padding=1, 
                 activation_function = nn.LeakyReLU(), pooling_type='max', pooling_kernel=2, 
-                dropout=None, input_shape=None):
+                dropout=0, input_shape=None):
 
         """
         Input shape should be a vector (n_channels, x, y, z)
@@ -18,22 +18,19 @@ class layer():
         self.activation_function = activation_function
         self.pooling_type = pooling_type
         self.pooling_kernel = pooling_kernel
-        self.dropout = dropout
+        self.dropout_proportion = dropout
         self.pooling_type = pooling_type
         self.dropout = dropout
         
-        self.layer = nn.ModuleList()
 
     def create_dropout(self):
-        if self.dropout:
-            self.dropout = nn.Dropout(self.dropout)
-            self.layer.append(self.dropout)
+        self.dropout = nn.Dropout(self.dropout_proportion)
 
     def create_pooling(self):
-        print("For custom layers, this method has to be explictly programmed")
+        "For custom layers, this method has to be explictly programmed"
     
     def create_main_layer(self):
-        print("For custom layers, this method has to be explictly programmed")
+        "For custom layers, this method has to be explictly programmed"
 
     def create_activation_function(self):
         if isinstance(self.activation_function, str):
@@ -71,53 +68,62 @@ class layer():
             }
             self.activation_function = self.activation_functions[self.activation_function.lower()]
             del(self.activation_functions)
-        self.layer.append(self.activation_function)
 
     def build_layer(self):
         self.create_main_layer()
         self.create_dropout()
         self.create_activation_function()
         self.create_pooling()
-        return self.layer
+        if self.pooling is not None:
+            return nn.Sequential(self.main_layer, self.dropout, self.activation_function, self.pooling)
+        else:
+            return nn.Sequential(self.main_layer, self.dropout, self.activation_function)
 
 class conv3d(layer):
     def create_pooling(self):
-        if str(self.pooling_type).lower() != "none" and self.pooling.type is not None:
+        if str(self.pooling_type).lower() != "none" and self.pooling_type is not None:
             if self.pooling_type.lower() == "max":
-                self.layer.append(nn.MaxPool3d(self.pooling_kernel))
+                self.pooling = nn.MaxPool3d(self.pooling_kernel)
             elif self.pooling_type.lower() == "avg":
-                self.layer.append(nn.AvgPool3d(self.pooling_kernel))
+                self.pooling = nn.AvgPool3d(self.pooling_kernel)
         else:
             self.pooling = None
     
     def create_main_layer(self):
         self.in_channels = self.input_shape[0]
-        self.layer.append(nn.Conv3d(in_channels=self.in_channels, out_channels=self.out_channels,
-                                    kernel_size=self.conv_kernel, padding=self.conv_padding))
+        self.main_layer = nn.Conv3d(in_channels=self.in_channels, out_channels=self.out_channels,
+                                    kernel_size=self.conv_kernel, padding=self.conv_padding)
     
     def calculate_output_shape(self):
-        n_channels = self.input_shape[0]
-        x = self.input_shape[1] - 2 * 3 ** (self.conv_kernel - (self.conv_padding + 2))
-        y = self.input_shape[2] - 2 * 3 ** (self.conv_kernel - (self.conv_padding + 2))
-        z = self.input_shape[3] - 2 * 3 ** (self.conv_kernel - (self.conv_padding + 2))
+        n_channels = self.out_channels
+        x = self.input_shape[1] - (2 ) * (self.conv_kernel - (self.conv_padding + 2))
+        y = self.input_shape[2] - (2 ) * (self.conv_kernel - (self.conv_padding + 2))
+        z = self.input_shape[3] - (2 ) * (self.conv_kernel - (self.conv_padding + 2))
         return (n_channels, x, y, z)
 
 class dense(layer):
-    def __init__(self,  neurons, dropout=None, in_channels=None):
+    def __init__(self,  neurons, dropout=None, in_channels=None, activation_function=nn.LeakyReLU()):
 
         self.in_channels = in_channels
-        self.out_features = neurons
-        self.dropout = dropout
-        
-    def create_main_layer(self):
-        self.layer.append(nn.Linear(in_channels=self.in_channels, out_channels=self.out_channels))
+        self.out_channels = neurons
+        self.dropout_proportion = dropout
+        self.layer = nn.ModuleList()
+        self.activation_function = activation_function
+        self.pooling = None
 
-class flatten(Flatten):    
-    def build_layer(self):
-        return self
+    def create_main_layer(self):
+        self.in_channels = self.input_shape
+        self.main_layer = nn.Linear(in_features=self.in_channels, out_features=self.out_channels)
 
     def calculate_output_shape(self):
-        return self.input_shape[0] * self.input_shape[1] * self.input_shape[2] * self.input_shape[3]
+        return self.out_channels
+
+class flatten():    
+    def build_layer(self):
+        return nn.Flatten(1,-1)
+
+    def calculate_output_shape(self):
+        return  self.input_shape[0] * 2**3
     
 class sigmoid(Sigmoid):
     def build_layer(self):
