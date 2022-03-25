@@ -13,8 +13,12 @@ class Channel(nn.Module):
 
         self.layers = nn.ModuleList()
 
-    def add_layer(self, other):
-        self.layers.append(other.build_layer())
+    def add_layers(self, other):
+        for layer in other:
+            if len(self.layers) != 0:        
+                layer.input_shape = prev_layer.calculate_output_shape()
+            prev_layer = layer
+            self.layers.append(layer.build_layer())
 
     def forward(self, x):
         for layer in self.layers:
@@ -55,12 +59,10 @@ class DCNN(nn.Module):
     
     def add_layers(self, other):
         for layer in other:
-            print(layer)
             if len(self.layers) != 0:        
                 layer.input_shape = prev_layer.calculate_output_shape()
             prev_layer = layer
             self.layers.append(layer.build_layer())
-            print(layer.input_shape)
     
     def define_loss(self, other):
         self.error = other
