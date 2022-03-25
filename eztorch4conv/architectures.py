@@ -32,11 +32,12 @@ class DCNN(nn.Module):
             self.name = name
         
         except OSError: 
-            count = 0
-            for file in os.listdir():
-                if file == name:
+            count = 1
+            for file in os.listdir(path):
+                if file.split("_")[0] == name.split("_")[0]:
+                    print(file, name)
                     count += 1
-            new_name = name + '_' + str(count)
+            new_name = name.split("_")[0] + '_' + str(count)
             self.name = new_name
             print(f"Directory already exists. Creating new directory: {os.path.join(path, new_name)}")
             os.mkdir(os.path.join(path, new_name))
@@ -56,12 +57,9 @@ class DCNN(nn.Module):
 
         for layer in other:
             if len(self.layers) != 0:        
-            	 
                 self.layer.input_shape = prev_layer.calculate_output_shape()
             prev_layer = layer
             self.layers.append(layer.build_layer())
-
-        self.layers.append(other.build_layer())
     
     def define_loss(self, other):
         self.error = other
