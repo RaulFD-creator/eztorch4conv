@@ -256,10 +256,10 @@ class MCDCNN(DCNN):
     def add_layer_to_channels(self, channels, layer):
         if channels == "all":
             for channel in self.channels:
-                channel.add_layer(layer)
+                channel.add_layers(layer)
         else:
             for channel in channels:
-                channel.add_layer(layer)
+                channel.add_layers(layer)
     
     def forward(self, x):
         outs = []
