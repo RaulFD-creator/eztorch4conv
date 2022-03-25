@@ -15,9 +15,9 @@ class Channel(nn.Module):
 
     def add_layers(self, other):
         if len(self.layers) != 0:        
-            layer.input_shape = prev_layer.calculate_output_shape()
-        prev_layer = layer
-        self.layers.append(layer.build_layer())
+            other.input_shape = prev_layer.calculate_output_shape()
+        prev_layer = other
+        self.layers.append(other.build_layer())
 
     def forward(self, x):
         for layer in self.layers:
