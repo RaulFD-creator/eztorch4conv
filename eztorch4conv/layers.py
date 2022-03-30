@@ -1,10 +1,11 @@
+from abc import abstractclassmethod
 import torch.nn as nn
 from torch.nn import Flatten
 from torch.nn import Sigmoid
 
 class layer():
     def __init__(self, neurons, conv_kernel=3, conv_padding=1, 
-                activation_function = nn.LeakyReLU(), pooling_type='max', pooling_kernel=2, 
+                activation_function = nn.ELU(), pooling_type='max', pooling_kernel=2, 
                 dropout=None, input_shape=None):
 
         """
@@ -28,54 +29,17 @@ class layer():
             self.dropout = nn.Dropout(self.dropout_proportion)
         else:
             self.dropout = nn.Dropout(0)
-
+    @abstractclassmethod
     def create_pooling(self):
         "For custom layers, this method has to be explictly programmed"
-    
+
+    @abstractclassmethod
     def create_main_layer(self):
         "For custom layers, this method has to be explictly programmed"
-
-    def create_activation_function(self):
-        if isinstance(self.activation_function, str):
-            self.activation_functions = {
-                'leakyrelu': nn.LeakyReLU(),
-                'relu': nn.ReLU(),
-                'elu': nn.ELU(),
-                'hardshrink': nn.Hardshrink(),
-                'hardsigmoid': nn.Hardsigmoid(),
-                'hardtanh': nn.Hardtanh(),
-                'hardswish': nn.Hardswish(),
-                'logsigmoid': nn.LogSigmoid(),
-                'multiheadattention': nn.MultiheadAttention(),
-                'prelu': nn.PreLU(),
-                'relu6': nn.ReLU6(),
-                'rrelu': nn.RReLU(),
-                'selu': nn.SELU(),
-                'celu': nn.CELU(),
-                'gelu': nn.GELU(),
-                'sigmoid': nn.Sigmoid(),
-                'silu': nn.SiLU(),
-                'mish': nn.Mish(),
-                'softplus': nn.Softplus(),
-                'softshrink': nn.Softshrink(),
-                'softsign': nn.Softsign(),
-                'tanh': nn.Tanh(),
-                'tabhshrink': nn.Tanhshrink(),
-                'threshold': nn.Threshold(),
-                'glu': nn.GLU(), 
-                'softmin': nn.Softmin(),
-                'softmax': nn.Softmax(), 
-                'softmax': nn.Softmax2d(),
-                'logsoftmax': nn.LogSoftmax(),
-                'adaptivelogsoftmaxwithloss': nn.AdaptiveLogSoftmaxWithLoss()
-            }
-            self.activation_function = self.activation_functions[self.activation_function.lower()]
-            del(self.activation_functions)
 
     def build_layer(self):
         self.create_main_layer()
         self.create_dropout()
-        self.create_activation_function()
         self.create_pooling()
         if self.pooling is not None:
             return nn.Sequential(self.main_layer, self.dropout, self.activation_function, self.pooling)
@@ -105,8 +69,9 @@ class conv3d(layer):
         return (n_channels, x, y, z)
 
 class dense(layer):
-    def __init__(self,  neurons, dropout=None, in_channels=None, activation_function=nn.LeakyReLU()):
+    def __init__(self,  neurons, dropout=None, in_channels=None, activation_function=nn.ELU(), input_shape=None):
 
+        self.input_shape = input_shape
         self.in_channels = in_channels
         self.out_channels = neurons
         self.dropout_proportion = dropout

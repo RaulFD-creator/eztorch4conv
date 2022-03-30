@@ -13,10 +13,10 @@ class Channel(nn.Module):
 
         self.layers = nn.ModuleList()
 
-    def add_layers(self, other):
+    def add_layer(self, other):
         if len(self.layers) != 0:        
-            other.input_shape = prev_layer.calculate_output_shape()
-        prev_layer = other
+            other.input_shape = self.prev_layer.calculate_output_shape()
+        self.prev_layer = other
         self.layers.append(other.build_layer())
 
     def forward(self, x):
@@ -58,11 +58,10 @@ class DCNN(nn.Module):
     
     def add_layers(self, other):
         for layer in other:
-            if len(self.layers) != 0:        
-                layer.input_shape = prev_layer.calculate_output_shape()
-            prev_layer = layer
-            self.layers.append(layer.build_layer())
-           
+            if len(self.layers) != 0 or layer.input_shape is None:        
+                layer.input_shape = self.prev_layer.calculate_output_shape()
+            self.prev_layer = layer
+            self.layers.append(layer.build_layer())  
     
     def define_loss(self, other):
         self.error = other
@@ -86,7 +85,7 @@ class DCNN(nn.Module):
                 previous_runs += 1
         current_run = previous_runs + 1
         torch.save(self, os.path.join(self.path, f'{current_run}.pt'))
-        os.system(f"touch {os.path.join(self.path, f'{current_run}.pt')}")
+        os.system(f"touch {os.path.join(self.path, f'{current_run}.data')}")
         with open(os.path.join(self.path, f'{self.name}.log'), "a") as fo:
             fo.write(f"{self.params}")
         
@@ -144,9 +143,9 @@ class DCNN(nn.Module):
                 # Clear gradients
                 self.optimizer.zero_grad()
                 # Forward propagation
-                outputs = self(train.float().to(self.device))
+                outputs = self(train.float().to(self.device)).to(self.device)
                 # Calculate loss
-                loss = self.error(outputs, labels.float().unsqueeze(1).to(self.device))
+                loss = self.error(outputs, labels.float().unsqueeze(1).to(self.device)).to(self.device)
                 # Calculating gradients
                 loss.backward()
                 # Update parameters
@@ -159,7 +158,7 @@ class DCNN(nn.Module):
             try:
                 self.scheduler.step()
             except:
-                continue
+                pass
 
             # Calculate metrics         
             TP = 0
@@ -225,44 +224,45 @@ class DCNN(nn.Module):
             self.params['f1'].append(f1)
             self.params['f2'].append(f2)
             self.print_params()
-            self.check_callbacks()
+            if epoch % 10 and epoch != 0:
+                self.save_model()
+            elif self.params['accuracy'][-1] > 0.7:
+                self.save_model()
+            #self.check_callbacks()
 
 
         self.save_model(True)
 
 class MCDCNN(DCNN):
 
-    def __init__(self, n_channels, name, path):
+    def __init__(self, name, path, n_channels):
 
         super(DCNN, self).__init__()
 
         self.count = 0
-        self.loss_list = []
-        self.iteration_list = []
-        self.accuracy_list = []
-        self.loss_val_list = []
-        self.iteration_list = []
-        self.accuracy_val_list = []
         self.channels = nn.ModuleList()
         self.n_channels = n_channels
         self.layers = nn.ModuleList()
         self.name = name
         self.save = path
         self.params = {}
+        self.callbacks = []
 
         self.float()
 
         for _ in range(self.n_channels):
             self.channels.extend([Channel()])
     
-    def add_layer_to_channels(self, channels, layer):
-        if channels == "all":
-            for channel in self.channels:
-                channel.add_layer(layer)
-        else:
-            for channel in channels:
-                channel.add_layer(layer)
+    def add_layers_to_channels(self, channels, layers):
+        for layer in layers:
+            if channels == "all":
+                for channel in self.channels:
+                    channel.add_layer(layer)
+            else:
+                for channel in channels:
+                    channel.add_layer(layer)
     
+   
     def forward(self, x):
         outs = []
         for i, channel in enumerate(self.channels):
