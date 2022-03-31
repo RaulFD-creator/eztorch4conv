@@ -111,7 +111,7 @@ class DCNN(nn.Module):
             for key, value in self.params.items():
                     if key in self.metrics:
                         of.write(f"{key}: {value},\t")
-                        print("{key}: {value}\n")
+                        print(f"{key}: {value}\n")
             of.write("\n")
     
     def check_callbacks(self):
