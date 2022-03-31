@@ -85,9 +85,9 @@ class DCNN(nn.Module):
                 previous_runs += 1
         current_run = previous_runs + 1
         torch.save(self, os.path.join(self.path, f'{current_run}.pt'))
-        os.system(f"touch {os.path.join(self.path, f'{current_run}.data')}")
         with open(os.path.join(self.path, f'{self.name}.log'), "a") as fo:
-            fo.write(f"{self.params}")
+            for key, value in self.params.items():
+            	fo.write(f"{key}: {value}")
         
         if final:
             os.system(f"touch {os.path.join(self.path, f'{self.name}.data')}")
@@ -108,11 +108,11 @@ class DCNN(nn.Module):
         os.system(f"touch {os.path.join(self.path, f'{self.name}_training.log')}")
 
         with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
-            for metric in self.metrics:
-                of.write(f"{self.params[metric][-1]},\t")
-                print(f"{metric}: {self.params[metric][-1]}") 
-            print() 
-
+            for key, value in self.params.items():
+                    if key in self.metrics:
+                        of.write(f"{key}: {value},\t")
+                        print("{key}: {value}\n")
+            of.write("\n")
     
     def check_callbacks(self):
         for callback in self.callbacks:
