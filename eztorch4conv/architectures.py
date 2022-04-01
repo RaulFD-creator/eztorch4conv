@@ -61,7 +61,10 @@ class DCNN(nn.Module):
             if len(self.layers) != 0 or layer.input_shape is None:        
                 layer.input_shape = self.prev_layer.calculate_output_shape()
             self.prev_layer = layer
-            self.layers.append(layer.build_layer())  
+            try:
+                self.layers.append(layer.build_layer())  
+            except:
+                self.layers.append(layer)
     
     def define_loss(self, other):
         self.error = other
