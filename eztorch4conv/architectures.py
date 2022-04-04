@@ -163,6 +163,7 @@ class DCNN(nn.Module):
             FN = 0
             TN = 0
             FP = 0
+            del(train)
 
             # Iterate through validation dataset
             for images, labels in validate_dataloader:
@@ -185,7 +186,7 @@ class DCNN(nn.Module):
                     
                     elif outputs[idx] > 0.5 and labels[idx] == 0:
                         FP += 1
-
+            del(test)
             # Performance metrics
             accuracy =  ((TN + TP) / (TP + TN + FP + FN))  
             try:
@@ -226,13 +227,7 @@ class DCNN(nn.Module):
                 self.save_model()
             elif self.params['accuracy'][-1] > 0.7:
                 self.save_model()
-            else:
-                try:
-                    if self.params['accuracy'][-2] - self.params['accuracy'][-1] < 0.001:
-                        self.save_model(True)
 
-                except IndexError:
-                    continue
             #self.check_callbacks()
 
 
