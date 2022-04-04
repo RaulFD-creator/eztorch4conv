@@ -30,20 +30,6 @@ class DCNN(nn.Module):
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
 
-        try: 
-            os.mkdir(os.path.join(path, name))
-            self.name = name
-        
-        except OSError: 
-            count = 1
-            for file in os.listdir(path):
-                if file.split("_")[0] == name.split("_")[0]:
-                    print(file, name)
-                    count += 1
-            new_name = name.split("_")[0] + '_' + str(count)
-            self.name = new_name
-            print(f"Directory already exists. Creating new directory: {os.path.join(path, new_name)}")
-            os.mkdir(os.path.join(path, new_name))
 
         self.count = 0
         self.callbacks = []
@@ -77,6 +63,9 @@ class DCNN(nn.Module):
         for layer in self.layers:
             x = layer(x)
         return x
+    
+    def count_parameters(self):
+        return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
     def save_model(self, final=False):
         previous_runs = -1
@@ -87,7 +76,7 @@ class DCNN(nn.Module):
         torch.save(self, os.path.join(self.path, f'{current_run}.pt'))
         with open(os.path.join(self.path, f'{self.name}.log'), "a") as fo:
             for key, value in self.params.items():
-            	fo.write(f"{key}: {value}")
+            	fo.write(f"{key}: {value[-1]}")
         
         if final:
             os.system(f"touch {os.path.join(self.path, f'{self.name}.data')}")
@@ -129,6 +118,8 @@ class DCNN(nn.Module):
                              'f1', 'f2']
         self.params = {}
         self.metrics = metrics
+        if metrics == 'all':
+            self.metrics = available_metrics
 
         for metric in available_metrics:
             self.params[metric] = []
