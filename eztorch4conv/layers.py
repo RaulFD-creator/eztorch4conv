@@ -6,7 +6,7 @@ from torch.nn import Sigmoid
 class layer():
     def __init__(self, neurons, conv_kernel=3, conv_padding=1, 
                 activation_function = nn.ELU(), pooling_type='max', pooling_kernel=2, 
-                dropout=None, input_shape=None):
+                dropout=None, input_shape=None, batch_norm=None):
 
         """
         Input shape should be a vector (n_channels, x, y, z)
@@ -14,6 +14,7 @@ class layer():
         
         self.input_shape = input_shape
         self.out_channels = neurons
+        self.batch_norm = batch_norm
         self.conv_kernel = conv_kernel
         self.conv_padding = conv_padding
         self.activation_function = activation_function
@@ -29,6 +30,7 @@ class layer():
             self.dropout = nn.Dropout(self.dropout_proportion)
         else:
             self.dropout = nn.Dropout(0)
+
     @abstractclassmethod
     def create_pooling(self):
         "For custom layers, this method has to be explictly programmed"
@@ -41,8 +43,12 @@ class layer():
         self.create_main_layer()
         self.create_dropout()
         self.create_pooling()
-        if self.pooling is not None:
+        if self.pooling is not None and self.batch_norm is None:
             return nn.Sequential(self.main_layer, self.dropout, self.activation_function, self.pooling)
+        elif self.pooling is not None and self.batch_norm is not None:
+            return nn.Sequential(self.main_layer, self.batch_norm, self.dropout, self.activation_function, self.pooling)
+        elif self.pooling is None and self.batch_norm is not None:
+            return nn.Sequential(self.main_layer, self.batch_norm, self.dropout, self.activation_function)
         else:
             return nn.Sequential(self.main_layer, self.dropout, self.activation_function)
 
@@ -69,7 +75,7 @@ class conv3d(layer):
         return (n_channels, x, y, z)
 
 class dense(layer):
-    def __init__(self,  neurons, dropout=None, in_channels=None, activation_function=nn.ELU(), input_shape=None):
+    def __init__(self,  neurons, dropout=None, in_channels=None, activation_function=nn.ELU(), input_shape=None, batch_norm=None):
 
         self.input_shape = input_shape
         self.in_channels = in_channels
@@ -77,6 +83,7 @@ class dense(layer):
         self.dropout_proportion = dropout
         self.layer = nn.ModuleList()
         self.activation_function = activation_function
+        self.batch_norm=None
         self.pooling = None
 
     def create_main_layer(self):
@@ -96,3 +103,4 @@ class flatten():
 class sigmoid(Sigmoid):
     def build_layer(self):
         return self
+
