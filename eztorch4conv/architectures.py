@@ -33,8 +33,8 @@ class DCNN(nn.Module):
 
         self.count = 0
         self.callbacks = []
-        self.path = os.path.join(path, self.name)
         self.name = name
+        self.path = os.path.join(path, self.name)
         self.float()
         self.params = {}
 
@@ -74,9 +74,11 @@ class DCNN(nn.Module):
                 previous_runs += 1
         current_run = previous_runs + 1
         torch.save(self, os.path.join(self.path, f'{current_run}.pt'))
-        with open(os.path.join(self.path, f'{self.name}.log'), "a") as fo:
-            for key, value in self.params.items():
-            	fo.write(f"{key}: {value[-1]}")
+        with open(os.path.join(self.path, f'{self.name}.log'), "w") as fo:
+            for i in range(len(self.params['accuracy'])):
+                    for metric in self.metrics:
+                        fo.write(f"{self.params[metric][i]},\t")
+                    fo.write(f"\n")
         
         if final:
             os.system(f"touch {os.path.join(self.path, f'{self.name}.data')}")
@@ -96,12 +98,16 @@ class DCNN(nn.Module):
         print()
         os.system(f"touch {os.path.join(self.path, f'{self.name}_training.log')}")
 
-        with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
-            for key, value in self.params.items():
-                    if key in self.metrics:
-                        of.write(f"{key}: {value},\t")
-                        print(f"{key}: {value}\n")
+        with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
+            for metric in self.metrics:
+                of.write(f"{metric}\t")
             of.write("\n")
+            for i in range(len(self.params['accuracy'])):
+                    for metric in self.metrics:
+                        print(metric)
+                        of.write(f"{self.params[metric][i]},\t")
+                        print(f"{self.params[metric][i]},\n")
+                    of.write(f"\n")
     
     def check_callbacks(self):
         for callback in self.callbacks:
@@ -114,12 +120,13 @@ class DCNN(nn.Module):
         print(f"Training Model using device: {self.device}")
 
         available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall', 
-                            'specificity', 'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
+                             'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
                              'f1', 'f2']
         self.params = {}
         self.metrics = metrics
         if metrics == 'all':
             self.metrics = available_metrics
+            print(self.metrics)
 
         for metric in available_metrics:
             self.params[metric] = []
@@ -215,10 +222,17 @@ class DCNN(nn.Module):
             self.params['f1'].append(f1)
             self.params['f2'].append(f2)
             self.print_params()
-            if epoch % 10 and epoch != 0:
+            if epoch % 10 == 0 and epoch != 0:
                 self.save_model()
             elif self.params['accuracy'][-1] > 0.7:
                 self.save_model()
+            else:
+                try:
+                    if self.params['accuracy'][-2] - self.params['accuracy'][-1] < 0.001:
+                        self.save_model(True)
+
+                except IndexError:
+                    continue
             #self.check_callbacks()
 
 
