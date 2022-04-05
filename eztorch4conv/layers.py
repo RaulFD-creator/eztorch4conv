@@ -3,7 +3,6 @@ import torch.nn as nn
 from torch.nn import Flatten
 from torch.nn import Sigmoid
 
-@abstractclass 
 class layer():
     def __init__(self, input_shape=None, **kwargs):
 
