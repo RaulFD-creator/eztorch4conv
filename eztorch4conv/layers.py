@@ -3,42 +3,86 @@ import torch.nn as nn
 from torch.nn import Flatten
 from torch.nn import Sigmoid
 
+@abstractclass 
 class layer():
-    def __init__(self, neurons, conv_kernel=3, conv_padding=1, 
-                activation_function = nn.ELU(), pooling_type='max', pooling_kernel=2, 
-                dropout=None, input_shape=None, batch_norm=None):
+    def __init__(self, input_shape=None, **kwargs):
 
         """
         Input shape should be a vector (n_channels, x, y, z)
         """
-        
         self.input_shape = input_shape
-        self.out_channels = neurons
-        self.batch_norm = batch_norm
-        self.conv_kernel = conv_kernel
-        self.conv_padding = conv_padding
-        self.activation_function = activation_function
-        self.pooling_type = pooling_type
-        self.pooling_kernel = pooling_kernel
-        self.dropout_proportion = dropout
-        self.pooling_type = pooling_type
-        self.dropout = dropout
+        try:
+            self.out_channels = kwargs['neurons']
+        except KeyError:
+            raise Exception('Need to specify how many neurons in each layer')
+        try:
+            self.activation_function = kwargs['activation_function']
+        except KeyError:
+            self.activation_function = nn.ELU()
+        try:
+            self.dropout_proportion = kwargs['dropout']
+        except KeyError:
+            self.dropout_proportion = None
         
-
     def create_dropout(self):
         if self.dropout_proportion is not None:
             self.dropout = nn.Dropout(self.dropout_proportion)
         else:
             self.dropout = nn.Dropout(0)
-
-    @abstractclassmethod
+            
+    @classmethod
+    @abstractmethod
     def create_pooling(self):
         "For custom layers, this method has to be explictly programmed"
-
-    @abstractclassmethod
+        
+    @classmethod
+    @abstractmethod
     def create_main_layer(self):
         "For custom layers, this method has to be explictly programmed"
-
+    
+    @classmethod
+    @abstractmethod
+    def build_layer(self):
+        self.create_main_layer()
+        self.create_dropout()
+        return nn.Sequential(self.main_layer, self.dropout, self.activation_function)
+        
+class conv3d(layer):
+    def __init__(self, input_shape=None, **kwargs):
+        super().__init__(input_shape=input_shape, kwargs)
+        try:
+            self.batch_norm = kwargs['batch_norm']
+        except KeyError:
+            self.batch_norm = None
+        try:
+            self.conv_kernel = kwargs['conv_kernel']
+        except KeyError:
+            raise Exception('Need to provide an specific kernel shape for conv layer')
+        try:
+            self.conv_padding = kwargs['conv_padding']
+        except KeyError:
+            self.conv_padding = 0
+        try:
+            self.pooling_type = kwargs['pooling_type']
+        except KeyError:
+            self.pooling_type = None
+        try:
+            self.pooling_kernel = kwargs['pooling_kernel']
+        except KeyError:
+            if self.pooling_type is not None:
+                self.pooling_kernel = 2
+            else:
+                self.pooling_kernel = None
+                     
+    def create_pooling(self):
+        if str(self.pooling_type).lower() != "none" and self.pooling_type is not None:
+            if self.pooling_type.lower() == "max":
+                self.pooling = nn.MaxPool3d(self.pooling_kernel)
+            elif self.pooling_type.lower() == "avg":
+                self.pooling = nn.AvgPool3d(self.pooling_kernel)
+        else:
+            self.pooling = None
+     
     def build_layer(self):
         self.create_main_layer()
         self.create_dropout()
@@ -51,16 +95,6 @@ class layer():
             return nn.Sequential(self.main_layer, self.batch_norm, self.dropout, self.activation_function)
         else:
             return nn.Sequential(self.main_layer, self.dropout, self.activation_function)
-
-class conv3d(layer):
-    def create_pooling(self):
-        if str(self.pooling_type).lower() != "none" and self.pooling_type is not None:
-            if self.pooling_type.lower() == "max":
-                self.pooling = nn.MaxPool3d(self.pooling_kernel)
-            elif self.pooling_type.lower() == "avg":
-                self.pooling = nn.AvgPool3d(self.pooling_kernel)
-        else:
-            self.pooling = None
     
     def create_main_layer(self):
         self.in_channels = self.input_shape[0]
@@ -75,16 +109,9 @@ class conv3d(layer):
         return (n_channels, x, y, z)
 
 class dense(layer):
-    def __init__(self,  neurons, dropout=None, in_channels=None, activation_function=nn.ELU(), input_shape=None, batch_norm=None):
-
-        self.input_shape = input_shape
-        self.in_channels = in_channels
-        self.out_channels = neurons
-        self.dropout_proportion = dropout
-        self.layer = nn.ModuleList()
-        self.activation_function = activation_function
-        self.batch_norm=None
-        self.pooling = None
+    def __init__(self, input_shape, **kwargs):
+        super().__init__(input_shape=input_shape, kwargs)
+        self.out_channels = self.neurons
 
     def create_main_layer(self):
         self.in_channels = self.input_shape
@@ -98,7 +125,7 @@ class flatten():
         return nn.Flatten(1,-1)
 
     def calculate_output_shape(self):
-        return  512
+        return  self.input_shape[0]*self.input_shape[1]*self.input_shape[2]*self.input_shape[3]
     
 class sigmoid(Sigmoid):
     def build_layer(self):
