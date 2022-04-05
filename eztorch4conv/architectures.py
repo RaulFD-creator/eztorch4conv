@@ -70,11 +70,11 @@ class DCNN(nn.Module):
     def save_model(self, final=False):
         previous_runs = -1
         for file in os.listdir(self.path):
-            if file.split('.')[0] == self.name and file.split('.')[1] == 'pt':
+            if file.split('_')[0] == self.name.split('_')[0] and file.split('.')[1] == 'pt':
                 previous_runs += 1
         current_run = previous_runs + 1
-        torch.save(self, os.path.join(self.path, f'{current_run}.pt'))
-        with open(os.path.join(self.path, f'{self.name}.log'), "w") as fo:
+        torch.save(self, os.path.join(self.path, f'{self.name.split('_')[0]}_{current_run}.pt'))
+        with open(os.path.join(self.path, f'{self.name.split('_')[0]}_{current_run}.log'), "w") as fo:
             for i in range(len(self.params['accuracy'])):
                     for metric in self.metrics:
                         fo.write(f"{self.params[metric][i]},\t")
