@@ -131,3 +131,6 @@ class sigmoid(Sigmoid):
     def build_layer(self):
         return self
 
+class elu(ELU):
+    def build_layer(self):
+        return self
