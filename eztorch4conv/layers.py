@@ -116,7 +116,7 @@ class conv3d(layer):
         return (n_channels, x, y, z)
 
 class dense(layer):
-    def __init__(self, input_shape, **kwargs):
+    def __init__(self, input_shape=None, **kwargs):
                
         try:
             a = kwargs['activation_function']
