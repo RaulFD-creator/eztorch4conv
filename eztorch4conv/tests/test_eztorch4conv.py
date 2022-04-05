@@ -14,18 +14,23 @@ import torch.nn as nn
 def test_eztorch4conv_imported():
     """Sample test, will always pass so long as import statement worked."""
     assert "eztorch4conv" in sys.modules
+    
     model = DCNN("model1", "./")
     model.add_layers([conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3),
+                    activation_function=elu()
                     flatten(),
                     dense(40),
-                    activation_function=elu()])
+                    ])
     model.add_callbacks([
                     early_stop(metric=["accuracy"],target=4),
                     checkpoint(metric=["accuracy"],target=4)])
     
     model2 = MCDCNN("model2", "./", 3)
-    model2.add_layers_to_channels('all', [conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3, activation_function=elu()),
-                                 flatten()])
+    model2.add_layers_to_channels('all', 
+                                  [
+                                      conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3), activation_function=elu(),
+                                      flatten()
+                                  ])
  
     
 
