@@ -45,7 +45,19 @@ class layer():
         
 class conv3d(layer):
     def __init__(self, input_shape=None, **kwargs):
-        super().__init__(input_shape, kwargs)
+        super().__init__(input_shape)
+        try:
+            self.out_channels = kwargs['neurons']
+        except KeyError:
+            raise Exception('Need to specify how many neurons in each layer')
+        try:
+            self.activation_function = kwargs['activation_function']
+        except KeyError:
+            self.activation_function = nn.ELU()
+        try:
+            self.dropout_proportion = kwargs['dropout']
+        except KeyError:
+            self.dropout_proportion = None
         try:
             self.batch_norm = kwargs['batch_norm']
         except KeyError:
@@ -106,7 +118,20 @@ class conv3d(layer):
 
 class dense(layer):
     def __init__(self, input_shape, **kwargs):
-        super().__init__(input_shape, kwargs)
+        super().__init__(input_shape)
+        try:
+            self.out_channels = kwargs['neurons']
+        except KeyError:
+            raise Exception('Need to specify how many neurons in each layer')
+        try:
+            self.activation_function = kwargs['activation_function']
+        except KeyError:
+            self.activation_function = nn.ELU()
+        try:
+            self.dropout_proportion = kwargs['dropout']
+        except KeyError:
+            self.dropout_proportion = None
+        
         self.out_channels = self.neurons
 
     def create_main_layer(self):
