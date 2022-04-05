@@ -130,7 +130,7 @@ class dense(layer):
         super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=kwargs['activation_function'],
                         dropout = kwargs['dropout'])
         
-        self.out_channels = self.neurons
+        self.out_channels = kwargs['neurons']
 
     def create_main_layer(self):
         self.in_channels = self.input_shape
