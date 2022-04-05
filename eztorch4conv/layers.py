@@ -49,7 +49,7 @@ class layer():
         
 class conv3d(layer):
     def __init__(self, input_shape=None, **kwargs):
-        super().__init__(input_shape=input_shape, kwargs)
+        super().__init__(input_shape, kwargs)
         try:
             self.batch_norm = kwargs['batch_norm']
         except KeyError:
@@ -110,7 +110,7 @@ class conv3d(layer):
 
 class dense(layer):
     def __init__(self, input_shape, **kwargs):
-        super().__init__(input_shape=input_shape, kwargs)
+        super().__init__(input_shape, kwargs)
         self.out_channels = self.neurons
 
     def create_main_layer(self):
