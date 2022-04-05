@@ -16,7 +16,7 @@ def test_eztorch4conv_imported():
     assert "eztorch4conv" in sys.modules
     
     model = DCNN("model1", "./")
-    model.add_layers([conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3, activation_function=elu()),
+    model.add_layers([conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3),
                     flatten(),
                     dense(40),
                     ])
