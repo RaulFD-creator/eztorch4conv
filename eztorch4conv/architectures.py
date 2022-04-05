@@ -92,7 +92,7 @@ class DCNN(nn.Module):
                         fo.write(f"{self.params[metric][i]},\t")
                     fo.write(f"\n")
             print("Stopping training ")
-            sys.exit(1)
+            break
 
     def print_params(self):
         print()
