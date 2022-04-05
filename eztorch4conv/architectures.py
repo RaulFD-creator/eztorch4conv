@@ -74,7 +74,7 @@ class DCNN(nn.Module):
                 previous_runs += 1
         current_run = previous_runs + 1
         if not final:
-            torch.save(self, os.path.join(self.path, f'{self.name.split('_')[0]}_{current_run}.pt'))
+            torch.save(self, os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.pt"))
             with open(os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.log"), "w") as fo:
                 for i in range(len(self.params['accuracy'])):
                         for metric in self.metrics:
