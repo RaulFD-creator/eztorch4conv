@@ -29,15 +29,12 @@ class layer():
         else:
             self.dropout = nn.Dropout(0)
             
-    @abstractclassmethod
     def create_pooling(self):
         "For custom layers, this method has to be explictly programmed"
         
-    @abstractclassmethod
     def create_main_layer(self):
         "For custom layers, this method has to be explictly programmed"
     
-    @abstractclassmethod
     def build_layer(self):
         self.create_main_layer()
         self.create_dropout()
