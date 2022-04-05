@@ -48,9 +48,13 @@ class conv3d(layer):
         try:
             a = kwargs['activation_function']
         except KeyError:
-            activation_function = nn.ELU()
+            kwargs['activation_function'] = nn.ELU()
+        try:
+            a = kwargs['dropout']
+        except KeyError:
+            kwargs['dropout'] = 0
          
-        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=activation_function,
+        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=kwargs['activation_function'],
                         dropout = kwargs['dropout'])
 
         try:
@@ -113,12 +117,17 @@ class conv3d(layer):
 
 class dense(layer):
     def __init__(self, input_shape, **kwargs):
+               
         try:
             a = kwargs['activation_function']
         except KeyError:
-            activation_function = nn.ELU()
+            kwargs['activation_function'] = nn.ELU()
+        try:
+            a = kwargs['dropout']
+        except KeyError:
+            kwargs['dropout'] = 0
          
-        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=activation_function,
+        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=kwargs['activation_function'],
                         dropout = kwargs['dropout'])
         
         self.out_channels = self.neurons
