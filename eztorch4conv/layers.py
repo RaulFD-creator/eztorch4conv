@@ -45,7 +45,12 @@ class layer():
         
 class conv3d(layer):
     def __init__(self, input_shape=None, **kwargs):        
-        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=kwargs['activation_function'],
+        try:
+            a = kwargs['activation_function']
+        except KeyError:
+            activation_function = nn.ELU()
+         
+        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=activation_function,
                         dropout = kwargs['dropout'])
 
         try:
@@ -108,7 +113,12 @@ class conv3d(layer):
 
 class dense(layer):
     def __init__(self, input_shape, **kwargs):
-        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=kwargs['activation_function'],
+        try:
+            a = kwargs['activation_function']
+        except KeyError:
+            activation_function = nn.ELU()
+         
+        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=activation_function,
                         dropout = kwargs['dropout'])
         
         self.out_channels = self.neurons
@@ -128,9 +138,5 @@ class flatten():
         return  self.input_shape[0]*self.input_shape[1]*self.input_shape[2]*self.input_shape[3]
     
 class sigmoid(Sigmoid):
-    def build_layer(self):
-        return self
-
-class elu(nn.ELU):
     def build_layer(self):
         return self
