@@ -92,7 +92,7 @@ class DCNN(nn.Module):
                         fo.write(f"{self.params[metric][i]},\t")
                     fo.write(f"\n")
             print("Stopping training ")
-            break
+            self.not_continue = True
 
     def print_params(self):
         print()
@@ -133,6 +133,8 @@ class DCNN(nn.Module):
 
         self.num_epochs = epochs
         self.batch_size = batch_size
+        self.not_continue = False
+
         for epoch in range(self.num_epochs):
             for i, (images, labels) in enumerate(train_dataloader):
                 
@@ -232,6 +234,8 @@ class DCNN(nn.Module):
 
 
         self.save_model(True)
+        if self.not_continue:
+            break
 
 class MCDCNN(DCNN):
 
