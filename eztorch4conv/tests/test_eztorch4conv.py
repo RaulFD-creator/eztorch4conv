@@ -17,8 +17,8 @@ def test_eztorch4conv_imported():
     model = DCNN("model1", "./")
     model.add_layers([conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3),
                     flatten(),
-                    dense(40)],
-                    activation_function=nn.ELU())
+                    dense(40),
+                    activation_function=nn.ELU()])
     model.add_callbacks([
                     early_stop(metric=["accuracy"],target=4),
                     checkpoint(metric=["accuracy"],target=4)])
