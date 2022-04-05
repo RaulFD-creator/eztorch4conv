@@ -227,7 +227,7 @@ class DCNN(nn.Module):
             self.print_params()
             if epoch % 10 == 0 and epoch != 0:
                 self.save_model()
-            elif self.params['accuracy'][-1] > 0.7:
+            elif self.params['accuracy'][-1] >= 0.7:
                 self.save_model()
 
             #self.check_callbacks()
