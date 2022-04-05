@@ -16,7 +16,7 @@ def test_eztorch4conv_imported():
     assert "eztorch4conv" in sys.modules
     
     model = DCNN("model1", "./")
-    model.add_layers([conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3),
+    model.add_layers([conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3, activation_function=nn.ELU()),
                     flatten(),
                     dense(neurons=40),
                     ])
@@ -25,11 +25,11 @@ def test_eztorch4conv_imported():
                     checkpoint(metric=["accuracy"],target=4)])
     
     model2 = MCDCNN("model2", "./", 3)
-    """model2.add_layers_to_channels('all', 
+    model2.add_layers_to_channels('all', 
                                   [
-                                      conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3), elu(),
+                                      conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3, activation_function=nn.ELU()),
                                       flatten()
                                   ])
  
-    """
+    
 
