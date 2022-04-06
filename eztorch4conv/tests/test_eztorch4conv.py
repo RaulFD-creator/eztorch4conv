@@ -18,7 +18,7 @@ def test_eztorch4conv_imported():
     model = DCNN("model1", "./")
     model.add_layers([conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3, activation_function=nn.ELU(),
                             padding='same'),
-                    flatten(),
+                    flatten(20),
                     dense(neurons=40, activation_function=nn.LeakyReLU()),
                     ])
     model.add_callbacks([
@@ -31,7 +31,7 @@ def test_eztorch4conv_imported():
                                       conv3d(neurons=2, input_shape=(3,9,9,9), conv_kernel=3, activation_function=nn.ELU(),
                                                 padding='valid'),
                                       conv3d(neurons=1, conv_kernel=5, activation_function=nn.ReLU()),
-                                      flatten()
+                                      flatten(20)
                                   ])
  
     
