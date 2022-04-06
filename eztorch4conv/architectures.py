@@ -315,6 +315,7 @@ class MCDCNN(DCNN):
         self.layers = nn.ModuleList()
         self.name = name
         self.save = path
+        self.path = path
         self.params = {}
         self.callbacks = []
 
