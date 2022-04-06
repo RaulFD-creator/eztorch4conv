@@ -1,9 +1,9 @@
-from abc import abstractclassmethod
+from abc import ABC, asbtractmethod
 import torch.nn as nn
 from torch.nn import Flatten
 from torch.nn import Sigmoid
 
-class layer():
+class layer(ABC):
     def __init__(self, input_shape=None, **kwargs):
 
         """
@@ -28,10 +28,12 @@ class layer():
             self.dropout = nn.Dropout(self.dropout_proportion)
         else:
             self.dropout = nn.Dropout(0)
-            
+     
+    @abstractmethod
     def create_pooling(self):
         "For custom layers, this method has to be explictly programmed"
-        
+    
+    @abstractmethod
     def create_main_layer(self):
         "For custom layers, this method has to be explictly programmed"
     
