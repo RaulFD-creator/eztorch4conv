@@ -136,7 +136,7 @@ class conv2d(conv3d):
         self.main_layer = nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels,
                                     kernel_size=self.conv_kernel, padding=self.conv_padding)
         
-   def calculate_output_shape(self):
+    def calculate_output_shape(self):
         n_channels = self.out_channels
         x = self.input_shape[1] - (2 ) * (self.conv_kernel - (self.conv_padding + 2))
         y = self.input_shape[2] - (2 ) * (self.conv_kernel - (self.conv_padding + 2))
@@ -156,7 +156,7 @@ class conv1d(conv3d):
         self.main_layer = nn.Conv1d(in_channels=self.in_channels, out_channels=self.out_channels,
                                     kernel_size=self.conv_kernel, padding=self.conv_padding)
         
-   def calculate_output_shape(self):
+    def calculate_output_shape(self):
         n_channels = self.out_channels
         x = self.input_shape[1] - (2 ) * (self.conv_kernel - (self.conv_padding + 2))
         return (n_channels, x)
