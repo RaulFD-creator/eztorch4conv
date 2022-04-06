@@ -141,7 +141,7 @@ class flatten():
         return nn.Flatten(1,-1)
 
     def calculate_output_shape(self):
-        return  self.input_shape[0]*self.input_shape[1]*self.input_shape[2]*self.input_shape[3]
+        return  512
     
 class sigmoid(Sigmoid):
     def build_layer(self):
