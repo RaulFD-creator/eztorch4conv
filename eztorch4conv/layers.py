@@ -67,7 +67,7 @@ class conv3d(layer):
         try:
             self.padding = kwargs['padding']
         except KeyError:
-            self.padding = 'valid'
+            self.padding = 'same'
         try:
             self.pooling_type = kwargs['pooling_type']
         except KeyError:
@@ -145,12 +145,14 @@ class dense(layer):
     def calculate_output_shape(self):
         return self.out_channels
 
-class flatten():    
+class flatten():
+    def __init__(self, output):
+        self.output = output    
     def build_layer(self):
         return nn.Flatten(1,-1)
 
     def calculate_output_shape(self):
-        return  512
+        return  self.output
     
 class sigmoid(Sigmoid):
     def build_layer(self):

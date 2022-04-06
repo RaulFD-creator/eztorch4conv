@@ -331,6 +331,7 @@ class MCDCNN(DCNN):
             else:
                 for channel in channels:
                     channel.add_layer(layer)
+            self.prev_layer = layer
     
    
     def forward(self, x):
