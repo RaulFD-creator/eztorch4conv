@@ -1,4 +1,4 @@
-from abc import ABC, asbtractmethod
+from abc import ABC, abstractmethod
 import torch.nn as nn
 from torch.nn import Flatten
 from torch.nn import Sigmoid
