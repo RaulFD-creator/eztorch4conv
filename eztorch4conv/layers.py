@@ -1,9 +1,9 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 import torch.nn as nn
 from torch.nn import Flatten
 from torch.nn import Sigmoid
 
-class layer(ABC):
+class layer():
     def __init__(self, input_shape=None, **kwargs):
 
         """
