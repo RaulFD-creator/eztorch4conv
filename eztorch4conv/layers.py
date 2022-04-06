@@ -1,4 +1,4 @@
-from abc import abstractclassmethod
+from abc import abstractmethod
 import torch.nn as nn
 from torch.nn import Flatten
 from torch.nn import Sigmoid
@@ -28,10 +28,12 @@ class layer():
             self.dropout = nn.Dropout(self.dropout_proportion)
         else:
             self.dropout = nn.Dropout(0)
-            
+     
+    @abstractmethod
     def create_pooling(self):
         "For custom layers, this method has to be explictly programmed"
-        
+    
+    @abstractmethod
     def create_main_layer(self):
         "For custom layers, this method has to be explictly programmed"
     
@@ -63,9 +65,9 @@ class conv3d(layer):
         except KeyError:
             raise Exception('Need to provide an specific kernel shape for conv layer')
         try:
-            self.conv_padding = kwargs['conv_padding']
+            self.padding = kwargs['padding']
         except KeyError:
-            self.conv_padding = 0
+            self.padding = 'valid'
         try:
             self.pooling_type = kwargs['pooling_type']
         except KeyError:
@@ -102,6 +104,13 @@ class conv3d(layer):
     
     def create_main_layer(self):
         self.in_channels = self.input_shape[0]
+        if self.padding == 'valid':
+            self.conv_padding = 0
+        elif self.padding == 'same':
+            self.conv_padding = self.conv_kernel // 2
+        elif self.padding is int:
+            self.conv_padding = self.padding
+        
         self.main_layer = nn.Conv3d(in_channels=self.in_channels, out_channels=self.out_channels,
                                     kernel_size=self.conv_kernel, padding=self.conv_padding)
     

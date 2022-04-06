@@ -1,5 +1,6 @@
 """
-Docustring
+Architectures module within eztorch4conv library. It contains the basic classes necessary to construct
+DCCN and MC-DCNN models with Pytorch in a simple and efficient way.
 """
 import torch
 import torch.nn as nn
@@ -25,7 +26,73 @@ class Channel(nn.Module):
         return x
 
 class DCNN(nn.Module):
-    def __init__(self, name, path='./'):
+    """
+    Class used to represent a DCNN (Deep Convolutional Neural Network) with Pytorch.
+    It inherits from the nn.Module Pytorch class.
+    
+    Attributes
+    ----------
+    self.name : str
+               Name of the model
+                
+    self.path : str
+               Path where the model is to be stored
+                
+    self.params : dict
+                 Dictionary where the training values will be recorded
+                  
+    self.layers : torch.nn.ModuleList
+                 Special list where all the layers.layer objects
+                 that comprise the model will be stored
+                  
+    self.error : torch.nn loss function
+                Pytorch object that contains the loss function for the 
+                optimisation
+               
+    self.optimizer : torch.nn optimizer algorithm
+                    Pytorch object that contains the optimisation algorithm
+                    that will be followed during training
+    
+    self.scheduler : torch.optim scheduler 
+                    Pytorch object that contains a scheduler object
+                    to dynamically change the learning rate
+                     
+    self.callbacks : list
+                    list of eztorch4conv objects that control
+                    the training process
+                  
+    Methods
+    -------
+    add_callbacks(other)
+        Introduces a new callback object into self.callbacks
+        
+    add_layers(other)
+        Introduces a new layer into the model
+        
+    add_scheduler(other)
+        Introduces a scheduler to dynamically change
+        the learning rate
+        
+    count_parameters()
+        Returns the number of parameters the model will
+        have to optimise
+    
+    define_loss(other)
+        Defines what the loss function will be
+    
+    define_optimizer(other)
+        Defines which optimisation algorithm the training
+        will follow
+        
+    foward()
+        Pytorch required method to define the order of layers
+        within the model
+        
+    
+    
+    
+    """
+    def __init__(self, name, path='.'):
 
         super(DCNN, self).__init__()
         self.layers = nn.ModuleList()
