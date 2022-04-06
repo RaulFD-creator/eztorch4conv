@@ -73,6 +73,7 @@ class DCNN(nn.Module):
             if file.split('_')[0] == self.name.split('_')[0] and file.split('.')[1] == 'pt':
                 previous_runs += 1
         current_run = previous_runs + 1
+        
         if not final:
             torch.save(self, os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.pt"))
             with open(os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.log"), "w") as fo:
