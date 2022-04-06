@@ -153,6 +153,7 @@ class flatten():
 
     def calculate_output_shape(self):
         return  self.output
+
     
 class sigmoid(Sigmoid):
     def build_layer(self):
