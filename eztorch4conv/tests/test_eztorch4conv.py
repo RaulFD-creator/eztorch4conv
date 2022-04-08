@@ -35,7 +35,7 @@ def test_eztorch4conv_imported():
     for LEARNING_RATE in [5e-6]:
         for WEIGHT_DECAY in [0]:
             for BATCH_SIZE in [10]:
-                for ARCHITECTURE in ['mcdcnn']:
+                for ARCHITECTURE in ['dcnn', 'mcdcnn']:
                     input_parameters = {
                         'learning_rate' : LEARNING_RATE,
                         'num_epochs' : 2,
@@ -45,7 +45,6 @@ def test_eztorch4conv_imported():
                         'model_name' : ARCHITECTURE + '_' + str(model_num//2),
                         'num_classes' : 1,
                         'num_channels' : 6 if ARCHITECTURE == 'dcnn' else 1,
-                        'output_flatten' : 512 if ARCHITECTURE == 'dcnn' else 3072, 
                         'device' : 'cpu',
                         'dataset_proportion' : 0.25,
                         'metrics' : 'all',
@@ -68,7 +67,6 @@ def test_eztorch4conv_imported():
                     METRICS = input_parameters["metrics"]
                     TRAINING_DATA = input_parameters["training_data"]
                     VALIDATION_DATA = input_parameters["validation_data"]
-                    OUTPUT_FLATTEN = input_parameters['output_flatten']
 
                     if ARCHITECTURE == "dcnn":
                         print("Using DCNN architecture")
@@ -92,7 +90,7 @@ def test_eztorch4conv_imported():
                                                             padding='same', pooling_type='max', dropout=0.25),
                                             ez.layers.conv3d(neurons=512, conv_kernel=3, batch_norm=False,
                                                             padding='same', pooling_type='max', dropout=0.25),
-                                            ez.layers.flatten(OUTPUT_FLATTEN),
+                                            ez.layers.flatten(),
                                             ez.layers.dense(neurons=512, dropout=0.5),
                                             ez.layers.dense(neurons=512, dropout=0.2),
                                             ez.layers.dense(neurons=256, dropout=0.4),
