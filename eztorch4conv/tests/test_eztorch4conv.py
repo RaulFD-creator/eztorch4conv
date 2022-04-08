@@ -58,16 +58,6 @@ class CustomDataset(Dataset):
 
 def test_eztorch4conv_imported():
 
-    with open("./dataset/reccord.csv", "w") as of:
-        of.write("Path,Binding\n")
-
-    for i in range(100):
-        print(i)
-        array = np.random.rand(6,16,16,16)
-        torch_array = torch.from_numpy(array)
-        with open("./reccord.csv", "a") as of:
-            of.write(f"./{i}.pt,{1 if i > 40 else 0}\n")
-    torch.save(torch_array, f'{i}.pt')
 
     model_num = 0
     for LEARNING_RATE in [5e-6]:
