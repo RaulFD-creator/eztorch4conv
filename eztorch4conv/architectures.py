@@ -5,7 +5,7 @@ DCCN and MC-DCNN models with Pytorch in a simple and efficient way.
 import torch
 import torch.nn as nn
 import os
-import sys
+import copy
 
 class Channel(nn.Module):
     def __init__(self):
@@ -14,11 +14,15 @@ class Channel(nn.Module):
 
         self.layers = nn.ModuleList()
 
-    def add_layer(self, other):
-        if len(self.layers) != 0:        
-            other.input_shape = self.prev_layer.calculate_output_shape()
-        self.prev_layer = other
-        self.layers.append(other.build_layer())
+    def add_layers(self, other):        
+        for layer in other:
+            if len(self.layers) == 0:
+                self.input_shape = layer.input_shape
+
+            if len(self.layers) != 0 or layer.input_shape is None:        
+                layer.input_shape = self.prev_layer.calculate_output_shape()
+            self.prev_layer = layer
+            self.layers.append(layer.build_layer())  
 
     def forward(self, x):
         for layer in self.layers:
@@ -89,8 +93,6 @@ class DCNN(nn.Module):
         within the model
         
     
-    
-    
     """
     def __init__(self, name, path='.'):
 
@@ -98,12 +100,21 @@ class DCNN(nn.Module):
         self.layers = nn.ModuleList()
 
 
-        self.count = 0
         self.callbacks = []
         self.name = name
         self.path = os.path.join(path, self.name)
         self.float()
         self.params = {}
+        try: 
+            os.mkdir(self.path)
+
+        except OSError: 
+            raise Exception(f"Directory already existing: {self.path}\nSelect another name")
+
+        with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
+            of.write("Metric,Epoch,Mode,Training,Validation")
+        with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
+            of.write("Model\tEpoch\n")
 
     def add_callbacks(self, other):
         for callback in other:
@@ -111,6 +122,9 @@ class DCNN(nn.Module):
     
     def add_layers(self, other):
         for layer in other:
+            if len(self.layers) == 0:
+                self.input_shape = layer.input_shape
+
             if len(self.layers) != 0 or layer.input_shape is None:        
                 layer.input_shape = self.prev_layer.calculate_output_shape()
             self.prev_layer = layer
@@ -134,7 +148,90 @@ class DCNN(nn.Module):
     def count_parameters(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
-    def save_model(self, final=False):
+    def train_model(self, train_dataloader, validate_dataloader, len_training, 
+                epochs, batch_size, metrics=["accuracy", "loss"]):
+
+        self._init_training(metrics)
+        self.float()
+
+        for epoch in range(epochs):
+            print()
+            print("-"*11)
+            print(f"| Epoch {epoch+1} |")
+            print("-"*11)
+
+            for mode in ['train', 'validate']:
+                self.train() if mode == 'train' else self.eval()
+                
+                TP = 0
+                TN = 0
+                FP = 0
+                FN = 0
+
+                for i, (images, labels) in enumerate(train_dataloader if mode == 'train' else validate_dataloader):
+                    # Load data and send to device
+                    inputs = images.view(len(images),
+                                                    self.input_shape[0],
+                                                    self.input_shape[1],
+                                                    self.input_shape[2],
+                                                    self.input_shape[3]).to(self.device)
+
+                    labels = labels.float().unsqueeze(1).to(self.device)
+                    # Clear gradients
+                    self.optimizer.zero_grad()
+
+                    with torch.set_grad_enabled(mode == 'train'):  
+                        # Foward propagation if training, evaluation if not
+                        outputs = self(inputs)
+
+                        # Calculate loss
+                        loss = self.error(outputs, labels)
+
+                    if mode == 'train':
+                        # Calculating gradients
+                        loss.backward()
+                        # Update parameters
+                        self.optimizer.step()
+                        # Update learning rate
+                        try:
+                            self.scheduler.step()
+                        except:
+                            pass
+                    
+                    TP_batch = 0
+                    FN_batch = 0
+                    TN_batch = 0
+                    FP_batch = 0
+
+                    for idx in range(len(labels)):
+                        if outputs[idx] > 0.5 and labels[idx] == 1:
+                            TP_batch += 1
+
+                        elif outputs[idx] < 0.5 and labels[idx] == 1:
+                            FN_batch += 1
+
+                        elif outputs[idx] < 0.5 and labels[idx] == 0:
+                            TN_batch += 1
+                        
+                        elif outputs[idx] > 0.5 and labels[idx] == 0:
+                            FP_batch += 1
+
+                    batch_acc = (TP_batch+TN_batch)/(TP_batch+TN_batch+FP_batch+FN_batch)
+
+                    if mode == 'train':
+                        print(f"Epoch {epoch+1}/{epochs}: Batch {i}/{len_training//batch_size} \tLoss: {loss.data}\t Accuracy: {batch_acc}")
+                
+                TP += TP_batch
+                TN += TN_batch
+                FP += FP_batch
+                FN += FN_batch
+
+                self._eval_performance(TP, TN, FP, FN, loss, epoch, mode)
+                #self.check_callbacks()
+
+        self._save_model(epoch, True)            
+
+    def _save_model(self, epoch, final=False):
         previous_runs = -1
         for file in os.listdir(self.path):
             try:
@@ -142,199 +239,143 @@ class DCNN(nn.Module):
                     previous_runs += 1
             except IndexError:
                 continue
+
         current_run = previous_runs + 1
         torch.save(self, os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.pt"))
-        if not final:
-            with open(os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.data"), "w") as fo:
-                for i in range(len(self.params['accuracy'])):
-                        for metric in self.metrics:
-                            fo.write(f"{self.params[metric][i]},\t")
-                        fo.write(f"\n")
+        with open(os.path.join(self.path, f"{self.name}.data"), "a") as of:
+            of.write(f"{self.name.split('_')[0]}_{current_run}.pt\t {epoch}\n")
         
         if final:
-            with open(os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.data"), "w") as fo:
-                for metric in self.metrics:
-                    fo.write(f"{metric}\t")
-                fo.write(f"\n")
+            print()
+            print("-"*21)
+            print("| Stopping training |")
+            print("-"*21)
 
-                for i in range(len(self.params['accuracy'])):
-                    for metric in self.metrics:
-                        fo.write(f"{self.params[metric][i]},\t")
-                    fo.write(f"\n")
-            print("Stopping training ")
+    def _print_params(self, epoch):
 
-
-    def print_params(self):
         print()
-        
-        with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
+        with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
+            print(f'Epoch: {epoch+1}\tTraining\tValidation\n')
             for metric in self.metrics:
-                of.write(f"{metric}\t")
-            of.write("\n")
-            for i in range(len(self.params['accuracy'])):
-                    for metric in self.metrics:
-                        print(metric)
-                        of.write(f"{self.params[metric][i]},\t")
-                        print(f"{self.params[metric][i]},\n")
-                    of.write(f"\n")
+                of.write(f"{metric},{epoch+1},{self.params['train'][metric][epoch]},{self.params['validate'][metric][epoch]}")
+                print(f"{metric}:\t{self.params['train'][metric][epoch]}\t{self.params['validate'][metric][epoch]}")
     
-    def check_callbacks(self):
+    def _check_callbacks(self):
         for callback in self.callbacks:
                 callback.run()
 
-
-    def train(self, train_dataloader, validate_dataloader, len_training, 
-                epochs, batch_size, metrics=["accuracy", "loss"]):
-
-        print(f"Training Model using device: {self.device}")
+    def _init_training(self, metrics):
+        print(f"Training Model using device: {self.device}\n")
 
         available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall', 
                              'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
                              'f1', 'f2']
         self.params = {}
-        self.metrics = metrics
+
         if metrics == 'all':
             self.metrics = available_metrics
-            print(self.metrics)
+        for mode in ['train', 'validate']:
+            self.params[mode] = {}
+        
+        for mode in ['train', 'validate']:
+            for metric in available_metrics:
+                self.params[mode][metric] = []
 
-        for metric in available_metrics:
-            self.params[metric] = []
+    def _eval_performance(self, TP, TN, FP, FN, loss, epoch, mode):
 
-        self.num_epochs = epochs
-        self.batch_size = batch_size
+        # Performance metrics
+        accuracy =  ((TN + TP) / (TP + TN + FP + FN))  
+        try:
+            precision = TP / (TP + FP) 
+        except ZeroDivisionError:
+            precision = 1
+        try:
+            negative_predictive_value = TN / (TN + FN)
+        except ZeroDivisionError:
+            negative_predictive_value = 1
+        try:
+            sensitivity = TP / (TP + FN)  # Same as recall
+        except ZeroDivisionError:
+            sensitivity = 1
+        try:
+            f1 = (2 * precision * sensitivity) / (precision + sensitivity)
+        except ZeroDivisionError:
+            f1 = 1
+        try: 
+            f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
+        except ZeroDivisionError:
+            f2 = 1
+
+        self.params[mode]['accuracy'].append(accuracy)
+        self.params[mode]['loss'].append(loss)
+        self.params[mode]['TP'].append(TP)
+        self.params[mode]['FP'].append(FP)
+        self.params[mode]['TN'].append(TN)
+        self.params[mode]['FN'].append(FN)
+        self.params[mode]['precision'].append(precision)
+        self.params[mode]['negative_predictive_value'].append(negative_predictive_value)
+        self.params[mode]['sensitivity'].append(sensitivity)
+        self.params[mode]['recall'].append(sensitivity)
+        self.params[mode]['f1'].append(f1)
+        self.params[mode]['f2'].append(f2)
 
 
-        for epoch in range(self.num_epochs):
-            for i, (images, labels) in enumerate(train_dataloader):
-                
-                train = torch.autograd.Variable(images.view(len(images),6,16,16,16))
-                labels = torch.autograd.Variable(labels)
-                # Clear gradients
-                self.optimizer.zero_grad()
-                # Forward propagation
-                outputs = self(train.float().to(self.device)).to(self.device)
-                # Calculate loss
-                loss = self.error(outputs, labels.float().unsqueeze(1).to(self.device)).to(self.device)
-                # Calculating gradients
-                loss.backward()
-                # Update parameters
-                self.optimizer.step()
-                
-                self.count += 1
-
-                print(f"Epoch {epoch+1}/{self.num_epochs}: Batch {i}/{len_training//self.batch_size} \tLoss: {loss.data}")
-            
-            try:
-                self.scheduler.step()
-            except:
-                pass
-
-            # Calculate metrics         
-            TP = 0
-            FN = 0
-            TN = 0
-            FP = 0
-            del(train)
-
-            # Iterate through validation dataset
-            for images, labels in validate_dataloader:
-                
-                test = torch.autograd.Variable(images.view(len(images),6,16,16,16))
-
-                # Forward propagation
-                outputs = self(test.float().to(self.device))
-
-                # Get predictions from the maximum value
-                for idx in range(len(labels)):
-                    if outputs[idx] > 0.5 and labels[idx] == 1:
-                        TP += 1
-
-                    elif outputs[idx] < 0.5 and labels[idx] == 1:
-                        FN += 1
-
-                    elif outputs[idx] < 0.5 and labels[idx] == 0:
-                        TN += 1
-                    
-                    elif outputs[idx] > 0.5 and labels[idx] == 0:
-                        FP += 1
-            del(test)
-            # Performance metrics
-            accuracy =  ((TN + TP) / (TP + TN + FP + FN))  
-            try:
-                precision = TP / (TP + FP) 
-            except ZeroDivisionError:
-                precision = 1
-            try:
-                negative_predictive_value = TN / (TN + FN)
-            except ZeroDivisionError:
-                negative_predictive_value = 1
-            try:
-                sensitivity = TP / (TP + FN)  # Same as recall
-            except ZeroDivisionError:
-                sensitivity = 1
-            try:
-                f1 = (2 * precision * sensitivity) / (precision + sensitivity)
-            except ZeroDivisionError:
-                f1 = 1
-            try: 
-                f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
-            except ZeroDivisionError:
-                f2 = 1
-
-            self.params['accuracy'].append(accuracy)
-            self.params['loss'].append(loss)
-            self.params['TP'].append(TP)
-            self.params['FP'].append(FP)
-            self.params['TN'].append(TN)
-            self.params['FN'].append(FN)
-            self.params['precision'].append(precision)
-            self.params['negative_predictive_value'].append(negative_predictive_value)
-            self.params['sensitivity'].append(sensitivity)
-            self.params['recall'].append(sensitivity)
-            self.params['f1'].append(f1)
-            self.params['f2'].append(f2)
-            self.print_params()
+        if mode == 'validate':
+            self._print_params(epoch)
             if epoch % 10 == 0 and epoch != 0:
-                self.save_model()
-            elif self.params['accuracy'][-1] >= 0.7:
-                self.save_model()
-
-            #self.check_callbacks()
-
-
-        self.save_model(True)
-
-
+                self._save_model(epoch)
+            elif self.params['validate']['accuracy'][-1] >= 0.7:
+                self._save_model(epoch)   
+   
 class MCDCNN(DCNN):
 
-    def __init__(self, name, path, n_channels):
+    def __init__(self, name, path, n_channels, input_shape):
 
         super(DCNN, self).__init__()
-
-        self.count = 0
         self.channels = nn.ModuleList()
-        self.n_channels = n_channels
         self.layers = nn.ModuleList()
+        self.n_channels = n_channels
+        self.input_shape = input_shape
+        self.callbacks = []
         self.name = name
         self.path = os.path.join(path, self.name)
-        self.params = {}
-        self.callbacks = []
-
         self.float()
+        self.params = {}
+        try: 
+            os.mkdir(self.path)
 
+        except OSError: 
+            raise Exception(f"Directory already existing: {self.path}\nSelect another name")
+
+        with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
+            of.write("Metric,Epoch,Mode,Training,Validation")
+        with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
+            of.write("Model\tEpoch\n")
+    
         for _ in range(self.n_channels):
             self.channels.extend([Channel()])
-    
+        
     def add_layers_to_channels(self, channels, layers):
-        for layer in layers:
-            if channels == "all":
+        if channels == "all":
+            for channel in self.channels:
+                channel.add_layers(copy.deepcopy(layers))
+        else:
+            for channel in channels:
+                channel.add_layers(copy.deepcopy(layers))
+
+    def add_layers(self, other):
+
+        for layer in other:
+            if len(self.layers) == 0:
+                layer.input_shape = 0
                 for channel in self.channels:
-                    channel.add_layer(layer)
-            else:
-                for channel in channels:
-                    channel.add_layer(layer)
+                    layer.input_shape += channel.prev_layer.calculate_output_shape()
+
+            if len(self.layers) != 0 or layer.input_shape is None:        
+                layer.input_shape = self.prev_layer.calculate_output_shape()
+                
             self.prev_layer = layer
-    
+            self.layers.append(layer.build_layer())  
    
     def forward(self, x):
         outs = []
