@@ -12,7 +12,7 @@ import torch.nn as nn
 import numpy as np
 import torch
 import eztorch4conv as ez
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 import torch.nn as nn
 import torch
 import os
