@@ -596,14 +596,29 @@ class MCDNN(DNN):
     """
     Class used to represent a MC-DNN (Multi-Channel Deep Neural Network) 
     with Pytorch. It inherits from the DNN class which, in turn, inherited from the
-    torch.nn.Module class.
+    torch.nn.Module class. Methods add_layers and forward work similarly to those
+    from its parent class but have been adapted to idiosyncrasies inherent to 
+    the multi-channel processing.
 
     Attributes
     ----------
     channels : torch.nn.ModuleList()
             Special list that contains all the channels that compose
             the MC-DNN
-        
+    
+    n_channels : int
+            Number of channels it has to be a positive integer
+
+    input_shape : tuple
+            Shape of input files to the MC-DNN. (n_channels, x, y, z)    
+
+    Methods
+    -------
+    add_channels(channels) 
+        Introduce a new channel or list of channels into the self.channels ModuleList
+
+    add_layers_to_channels(channels, layers)   
+        Introduce a layer or list of layers to the specified channels. 
 
     """
     def __init__(self, name, path, input_shape, n_channels=0):
@@ -644,7 +659,20 @@ class MCDNN(DNN):
             self.n_channels += 1
         else:
             raise TypeError(f"Object {channels} is neither a channel nor a list of channels")
-        
+
+    def add_layers(self, other):
+        for layer in other:
+            if len(self.layers) == 0:
+                layer.input_shape = 0
+                for channel in self.channels:
+                    layer.input_shape += channel.prev_layer.calculate_output_shape()
+
+            if len(self.layers) != 0 or layer.input_shape is None:        
+                layer.input_shape = self.prev_layer.calculate_output_shape()
+                
+            self.prev_layer = layer
+            self.layers.append(layer.build_layer())  
+          
     def add_layers_to_channels(self, channels, layers):
         if channels == "all":
             for channel in self.channels:
@@ -659,19 +687,6 @@ class MCDNN(DNN):
                 else:
                     channel.add_layers(copy.deepcopy(layers))
                     
-    def add_layers(self, other):
-        for layer in other:
-            if len(self.layers) == 0:
-                layer.input_shape = 0
-                for channel in self.channels:
-                    layer.input_shape += channel.prev_layer.calculate_output_shape()
-
-            if len(self.layers) != 0 or layer.input_shape is None:        
-                layer.input_shape = self.prev_layer.calculate_output_shape()
-                
-            self.prev_layer = layer
-            self.layers.append(layer.build_layer())  
-   
     def forward(self, x):
         outs = []
         for i, channel in enumerate(self.channels):
