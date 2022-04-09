@@ -1,8 +1,8 @@
 """
 Architectures module within eztorch4conv library. It contains the basic classes necessary to construct
-DNN and MC-DNN models with Pytorch in a simple and efficient way. Classes are specifically design
-to create DCNN and MC-DCNN models, though they are general enough that they can allow for different
-layers.
+DNN and MC-DNN models with Pytorch in a simple and efficient way. Classes are specifically designed
+to create DCNN and MC-DCNN models, though they are general enough that they can be used for any kind of 
+model.
 """
 import torch
 import torch.nn as nn
@@ -94,7 +94,7 @@ class Channel(nn.Module):
                 layers.input_shape = self.prev_layer.calculate_output_shape()
 
             self.prev_layer = layers
-            self.layers.append(layers.build_layer())  
+            self.layers.append(layers.build_layer().to(self.device))  
 
     def forward(self, x):
         """

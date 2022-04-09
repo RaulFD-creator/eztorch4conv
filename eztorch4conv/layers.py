@@ -3,7 +3,6 @@ import torch.nn as nn
 
 class layer():
     def __init__(self, input_shape=None, **kwargs):
-
         """
         Input shape should be a vector (n_channels, x, y, z)
         """
@@ -154,7 +153,6 @@ class conv2d(conv3d):
         self.modules.append(nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels,
                                     kernel_size=self.conv_kernel, padding=self.conv_padding))
 
-        
     def calculate_output_shape(self):
         n_channels = self.out_channels
         x = self.input_shape[1] - self.conv_kernel + 2 * self.conv_padding + 1
@@ -219,8 +217,3 @@ class flatten():
 
     def calculate_output_shape(self):
         return  self.input_shape[0] * self.input_shape[1] * self.input_shape[2] * self.input_shape[3]
-
-    
-class sigmoid(nn.Sigmoid):
-    def build_layer(self):
-        return self

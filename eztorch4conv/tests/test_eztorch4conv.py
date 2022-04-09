@@ -99,7 +99,7 @@ def test_eztorch4conv_imported():
                     if ARCHITECTURE == "dcnn":
                         print("Using DCNN architecture")
                         # Create DCNN
-                        model = ez.architectures.DCNN(MODEL_NAME, os.path.join(".", "Models"))
+                        model = ez.architectures.DNN(MODEL_NAME, os.path.join(".", "Models"))
                         model.add_layers([
                                             ez.layers.conv3d(input_shape=(NUM_CHANNELS,16,16,16), neurons=32, 
                                                             conv_kernel=5, padding='same', pooling_type='max', 
@@ -134,7 +134,7 @@ def test_eztorch4conv_imported():
 
                     elif ARCHITECTURE == "mcdcnn" or ARCHITECTURE == "mc-dcnn":
                         print("Using MC-DCNN architecture")
-                        model = ez.architectures.MCDCNN(MODEL_NAME, os.path.join(".", "Models"), 6, (6,16,16,16))
+                        model = ez.architectures.MCDNN(MODEL_NAME, os.path.join(".", "Models"), 6, (6,16,16,16))
                         model.add_layers_to_channels('all', 
                             [
                                             ez.layers.conv3d(input_shape=(NUM_CHANNELS,16,16,16), neurons=32, 

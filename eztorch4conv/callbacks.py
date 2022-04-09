@@ -2,6 +2,9 @@
 
 """Callbacks: utilities called at certain points during model training."""
 
+from abc import abstractmethod
+
+
 class Callback():
     """
     Basic wrapper to easily wrap callbacks in eztorch4conv environment.
@@ -16,7 +19,7 @@ class Callback():
 
     Attributes
     ----------
-    model : DCNN or MCDCNN class object
+    model : DNN or MCDNN class object
             model for which the callback is created
 
     metric : str
@@ -73,6 +76,7 @@ class Callback():
         else:
             return False
 
+    @abstractmethod
     def action(self):
         """
         Customizable action, that can be introduced to create custom callbacks
@@ -98,8 +102,6 @@ class early_stop(Callback):
     """    
     def action(self):
         self.model.save_model(final=True)
-
-    
 
 class checkpoint(early_stop):
     """
