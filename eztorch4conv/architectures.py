@@ -6,7 +6,7 @@ layers.
 """
 import torch
 import torch.nn as nn
-from callbacks import Callback
+from .callbacks import Callback
 import os
 import copy
 
@@ -19,14 +19,14 @@ class Channel(nn.Module):
 
     Attributes
     ----------
-    self.layers : torch.nn.ModuleList
-            Special list where all the layers.layer objects
-            that comprise the model will be stored
+    layers : torch.nn.ModuleList
+        Special list where all the layers.layer objects
+        that comprise the model will be stored
 
-    self.prev_layer : layer object
-                    Last layer object to be introduced in the ModuleList
-                    necessary for concatenating different layers, without
-                    having to specificate their input sizes.
+    prev_layer : layer object
+            Last layer object to be introduced in the ModuleList
+            necessary for concatenating different layers, without
+            having to specificate their input sizes.
 
     Methods
     -------
@@ -62,7 +62,7 @@ class Channel(nn.Module):
         new_channels : list
                     List of 'other' number of deepcopies of original Channel
         """
-        if other is int and other > 0:
+        if isinstance(other, int) and other > 0:
             return [copy.deepcopy(self) for _ in range(other)]
         else:
             raise TypeError(f"Value: {other} is not an integer. Channels can only be multiplied by integers")
@@ -77,7 +77,7 @@ class Channel(nn.Module):
             Layer or list of layers to compose the model
         """
       
-        if layers is list:
+        if isinstance(layers, list):
             for layer in layers:
                 if len(self.layers) == 0:
                     self.input_shape = layer.input_shape
@@ -118,34 +118,37 @@ class DNN(nn.Module):
     
     Attributes
     ----------
-    self.callbacks : list
-                    list of eztorch4conv objects that control
-                    the training process
+    available_metrics : list
+                List of supported metrics
+
+    callbacks : list
+            List of eztorch4conv objects that control
+            the training process
     
-    self.error : torch.nn loss function
-                Pytorch object that contains the loss function for the 
-                optimisation
+    error : torch.nn loss function
+        Pytorch object that contains the loss function for the 
+        optimisation
 
-    self.layers : torch.nn.ModuleList
-                 Special list where all the layers.layer objects
-                 that comprise the model will be stored
+    layers : torch.nn.ModuleList
+        Special list where all the layers.layer objects
+        that comprise the model will be stored
 
-    self.name : str
-               Name of the model
+    name : str
+        Name of the model
 
-    self.optimizer : torch.nn optimizer algorithm
-                    Pytorch object that contains the optimisation algorithm
-                    that will be followed during training
+    optimizer : torch.nn optimizer algorithm
+            Pytorch object that contains the optimisation algorithm
+            that will be followed during training
                 
-    self.params : dict
-                 Dictionary where the training values will be recorded
+    params : dict
+            Dictionary where the training values will be recorded
 
-    self.path : str
-               Path where the model is to be stored
+    path : str
+        Path where the model is to be stored
                    
-    self.scheduler : torch.optim scheduler 
-                    Pytorch object that contains a scheduler object
-                    to dynamically change the learning rate
+    scheduler : torch.optim scheduler 
+            Pytorch object that contains a scheduler object
+            to dynamically change the learning rate
                           
     Methods
     -------
@@ -195,6 +198,9 @@ class DNN(nn.Module):
         super(DNN, self).__init__()
 
         # Initialise attributes
+        self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall',
+                        'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
+                        'f1', 'f2']
         self.callbacks = []
         self.layers = nn.ModuleList()
         self.name = name
@@ -231,7 +237,7 @@ class DNN(nn.Module):
             Callback or list of callbacks to regulate
             in the model
         """
-        if callbacks is list:
+        if isinstance(callbacks, list):
             for callback in callbacks:
                     self.add_callbacks(callback)
         elif callbacks is Callback:
@@ -249,7 +255,7 @@ class DNN(nn.Module):
             Layer or list of layers to compose the model
         """
 
-        if layers is list:
+        if isinstance(layers, list):
             for layer in layers:
                 if len(self.layers) == 0:
                     self.input_shape = layer.input_shape
@@ -529,22 +535,21 @@ class DNN(nn.Module):
 
         print(f"Training Model using device: {self.device}\n")
 
-        available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 
-                             'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
-                             'f1', 'f2']
         self.params = {}
 
         if metrics == 'all':
-            self.metrics = available_metrics
+            self.metrics = []
+
+            for metric in self.available_metrics:
+                if metric != 'recall':
+                    self.metrics.append(metric)
+
         for mode in ['train', 'validate']:
             self.params[mode] = {}
         
         for mode in ['train', 'validate']:
-            for metric in self.metrics:
-                if metric in available_metrics or metric == 'recall':
-                    self.params[mode][metric] = []
-                else:
-                    raise ValueError(f"Metric: {metric} not supported.\nAvailable metrics: {available_metrics.append('recall')}")
+            for metric in self.available_metrics:
+                self.params[mode][metric] = []
     
     def _print_params(self, epoch):
         """
@@ -556,9 +561,12 @@ class DNN(nn.Module):
         with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
             print(f'Epoch: {epoch+1}\tTraining\tValidation\n')
             for metric in self.metrics:
-                of.write(f"{metric},{epoch+1},{self.params['train'][metric][epoch]},{self.params['validate'][metric][epoch]}")
-                print(f"{metric}:\t{self.params['train'][metric][epoch]}\t{self.params['validate'][metric][epoch]}")
-    
+                if metric in self.available_metrics:
+                    of.write(f"{metric},{epoch+1},{self.params['train'][metric][epoch]},{self.params['validate'][metric][epoch]}")
+                    print(f"{metric}:\t{self.params['train'][metric][epoch]}\t{self.params['validate'][metric][epoch]}")
+                else:
+                    print(f"Warning: Metric: {metric} is not supported.\nAvailable metrics: {self.available_metrics}")
+        
     def _save_model(self, epoch, final=False):
         """
         Helper method to train_model(). It saves an instance of the model, and records
@@ -592,15 +600,18 @@ class MCDNN(DNN):
 
     Attributes
     ----------
-    self.channels : torch.nn.ModuleList()
-                Special list that contains all the channels that compose
-                the MC-DNN
+    channels : torch.nn.ModuleList()
+            Special list that contains all the channels that compose
+            the MC-DNN
         
 
     """
     def __init__(self, name, path, input_shape, n_channels=0):
 
         super(DNN, self).__init__()
+        self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall',
+                'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
+                'f1', 'f2']
         self.channels = nn.ModuleList()
         self.layers = nn.ModuleList()
         self.n_channels = n_channels
@@ -622,13 +633,13 @@ class MCDNN(DNN):
             of.write("Model\tEpoch\n")
 
         if n_channels > 0:
-            self.channels.append(Channel() * self.n_channels)
+            self.add_channels(Channel() * self.n_channels)
         
     def add_channels(self, channels):
-        if channels is list:
+        if isinstance(channels,list):
             for channel in channels:
                 self.add_channels(channel)
-        elif channels is Channel:
+        elif isinstance(channels, Channel):
             self.channels.append(channels)
             self.n_channels += 1
         else:
@@ -637,16 +648,16 @@ class MCDNN(DNN):
     def add_layers_to_channels(self, channels, layers):
         if channels == "all":
             for channel in self.channels:
-                if layers is list:
+                if isinstance(layers, list):
                     channel.add_layers(copy.deepcopy(layers))
                 else:
-                    channel.add_layers(copy.deepcopy([layers]))
+                    channel.add_layers(copy.deepcopy(layers))
         else:
             for channel in channels:
-                if layers is list:
+                if isinstance(layers, list):
                     channel.add_layers(copy.deepcopy(layers))
                 else:
-                    channel.add_layers(copy.deepcopy([layers]))
+                    channel.add_layers(copy.deepcopy(layers))
                     
     def add_layers(self, other):
         for layer in other:
