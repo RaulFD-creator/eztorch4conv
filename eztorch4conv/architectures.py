@@ -15,12 +15,19 @@ class Channel(nn.Module):
         self.layers = nn.ModuleList()
 
     def add_layers(self, other):        
-        for layer in other:
-            if len(self.layers) == 0:
-                self.input_shape = layer.input_shape
+        if other is list:
+            for layer in other:
+                if len(self.layers) == 0:
+                    self.input_shape = layer.input_shape
 
-            if len(self.layers) != 0 or layer.input_shape is None:        
+                elif len(self.layers) != 0 or layer.input_shape is None:        
+                    layer.input_shape = self.prev_layer.calculate_output_shape()
+        else:
+            if len(self.layers) == 0:
+                    self.input_shape = layer.input_shape
+            elif len(self.layers) != 0 or layer.input_shape is None:        
                 layer.input_shape = self.prev_layer.calculate_output_shape()
+
             self.prev_layer = layer
             self.layers.append(layer.build_layer())  
 
@@ -121,12 +128,19 @@ class DCNN(nn.Module):
             self.callbacks.append(callback)
     
     def add_layers(self, other):
-        for layer in other:
-            if len(self.layers) == 0:
-                self.input_shape = layer.input_shape
+        if other is list:
+            for layer in other:
+                if len(self.layers) == 0:
+                    self.input_shape = layer.input_shape
 
-            if len(self.layers) != 0 or layer.input_shape is None:        
+                elif len(self.layers) != 0 or layer.input_shape is None:        
+                    layer.input_shape = self.prev_layer.calculate_output_shape()
+        else:
+            if len(self.layers) == 0:
+                    self.input_shape = layer.input_shape
+            elif len(self.layers) != 0 or layer.input_shape is None:        
                 layer.input_shape = self.prev_layer.calculate_output_shape()
+
             self.prev_layer = layer
             self.layers.append(layer.build_layer())  
     
@@ -364,7 +378,6 @@ class MCDCNN(DCNN):
                 channel.add_layers(copy.deepcopy(layers))
 
     def add_layers(self, other):
-
         for layer in other:
             if len(self.layers) == 0:
                 layer.input_shape = 0
