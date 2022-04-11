@@ -37,12 +37,12 @@ class CustomDataset(Dataset):
                 counter += 1
 
         output = self.labels["Binding"].value_counts()
-        os.system(f"touch Models/{model_name}/data_division.log")
-        with open(f"Models/{model_name}/data_division.log","a") as fo:
-            fo.write(f"{output}\n")
-        with open(f"Models/{model_name}/input.data","w") as fo:
-            for key, value in input_parameters.items():
-                fo.write(f"{key}: {value}\n")
+        #os.system(f"touch Models/{model_name}/data_division.log")
+        #with open(f"Models/{model_name}/data_division.log","a") as fo:
+        #    fo.write(f"{output}\n")
+        #with open(f"Models/{model_name}/input.data","w") as fo:
+        #    for key, value in input_parameters.items():
+        #        fo.write(f"{key}: {value}\n")
         
     def __len__(self):
         return len(self.labels)
