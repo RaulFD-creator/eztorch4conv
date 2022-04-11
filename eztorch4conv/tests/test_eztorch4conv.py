@@ -75,8 +75,8 @@ def test_eztorch4conv_imported():
                         'device' : 'cpu',
                         'dataset_proportion' : 0.25,
                         'metrics' : 'all',
-                        'training_data' : "./dataset/reccord.csv",
-                        "validation_data" : "./dataset/reccord.csv"
+                        'training_data' : "eztorch4conv/tests/dataset/reccord.csv",
+                        "validation_data" : "eztorch4conv/tests/dataset/reccord.csv"
 
                     }
                     model_num += 1
