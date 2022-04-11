@@ -6,6 +6,7 @@ Unit and regression test for the eztorch4conv package.
 import sys
 
 import pytest
+import random
 
 #import eztorch4conv
 import torch.nn as nn
