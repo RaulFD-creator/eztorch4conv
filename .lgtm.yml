@@ -9,5 +9,6 @@ path_classifiers:
     - versioneer.py  # Set Versioneer.py to an external "library" (3rd party code)
     - devtools/*
     - torch
+    - pandas
   generated:
     - eztorch4conv/_version.py
