@@ -169,17 +169,13 @@ def test_eztorch4conv_imported():
                             ])
 
 
-                    model.define_loss(nn.BCELoss())
-                    # Optimization with ADAM and L2 regularization
-                    if WEIGHT_DECAY == 1:
-                        model.define_optimizer(torch.optim.Adam(model.parameters(), lr=LEARNING_RATE))
-                    else:
-                        model.define_optimizer(torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY))
 
                     training_data = CustomDataset(TRAINING_DATA, MODEL_NAME, DATASET_PROPORTION, input_parameters)
                     train_dataloader = DataLoader(training_data, batch_size=BATCH_SIZE, shuffle=True)
                     validation_data = CustomDataset(VALIDATION_DATA, MODEL_NAME, DATASET_PROPORTION, input_parameters)
                     validate_dataloader = DataLoader(validation_data, batch_size=BATCH_SIZE, shuffle=True)
+
+                    model.compile(torch.optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY), nn.BCELoss())
 
                     #print(model)
                     print(f"Number of trainable parameters: {model.count_parameters()}")
