@@ -4,11 +4,9 @@ Unit and regression test for the eztorch4conv package.
 
 # Import package, test suite, and other packages as needed
 import sys
-
+import pandas as pd
 import pytest
 import random
-
-#import eztorch4conv
 import torch.nn as nn
 import numpy as np
 import torch
