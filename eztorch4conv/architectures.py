@@ -597,7 +597,7 @@ class DNN(nn.Module):
                 of.write(f"{self.name.split('_')[0]}_{current_run}.pt\t{epoch}\n")
             
         else:
-            self.checkpoints.append((epoch, copy.deepcopy(self)))
+            self.checkpoints.append((epoch, copy.copy(self)))
 
         if final:
             print()
