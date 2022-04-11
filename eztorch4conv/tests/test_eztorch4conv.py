@@ -185,8 +185,8 @@ def test_eztorch4conv_imported():
                     print(f"Number of trainable parameters: {model.count_parameters()}")
 
                     model.device = DEVICE
-                    #model.train_model(train_dataloader, validate_dataloader,len(training_data), 
-                    #            NUM_EPOCHS, BATCH_SIZE, METRICS)
+                    checkpoints, history = model.train_model(train_dataloader, validate_dataloader,len(training_data), 
+                                NUM_EPOCHS, BATCH_SIZE, METRICS)
 
     
         

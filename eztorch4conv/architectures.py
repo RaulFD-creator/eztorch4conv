@@ -4,6 +4,7 @@ DNN and MC-DNN models with Pytorch in a simple and efficient way. Classes are sp
 to create DCNN and MC-DCNN models, though they are general enough that they can be used for any kind of 
 model.
 """
+import eztorch4conv as ez
 import torch
 import torch.nn as nn
 from .callbacks import Callback
@@ -14,7 +15,7 @@ class Channel(nn.Module):
     """
     Class used to represent each of the Channels in a MC-DNN. Fundamentally,
     it works as the DNN class, but without all the functions focused on 
-    training or performance recording. If multiplied by a positive integer
+    training and performance recording. If multiplied by a positive integer
     'n', it returns a list with n deepcopies of itself.
 
     Attributes
@@ -42,7 +43,6 @@ class Channel(nn.Module):
         """
         Creates an instance of the Channel class as a Pytorch Module.
         """
-
         super(Channel, self).__init__()
 
         self.layers = nn.ModuleList()
@@ -106,7 +106,6 @@ class Channel(nn.Module):
         x : float
             Model prediction
         """
-
         for layer in self.layers:
             x = layer(x)
         return x
@@ -124,6 +123,9 @@ class DNN(nn.Module):
     callbacks : list
             List of eztorch4conv objects that control
             the training process
+
+    checkpoints : list
+            List of checkpoints to store all checkpoints
     
     error : torch.nn loss function
         Pytorch object that contains the loss function for the 
@@ -132,7 +134,7 @@ class DNN(nn.Module):
     layers : torch.nn.ModuleList
         Special list where all the layers.layer objects
         that comprise the model will be stored
-
+    
     name : str
         Name of the model
 
@@ -145,6 +147,10 @@ class DNN(nn.Module):
 
     path : str
         Path where the model is to be stored
+
+    save_files : bool
+            Flag that indicates whether the history training
+            and model checkpoints should be stored
                    
     scheduler : torch.optim scheduler 
             Pytorch object that contains a scheduler object
@@ -177,8 +183,7 @@ class DNN(nn.Module):
                 epochs, batch_size, metrics)
         Trains and validates the model      
     """
-
-    def __init__(self, name, path='.'):
+    def __init__(self, name, path='.', save_files=False):
         """
         Create an instance of the DNN class as a Pytorch Module and 
         creates the appropriate directories and files required
@@ -194,7 +199,6 @@ class DNN(nn.Module):
             Directory where the output files, including trained models,
             will be stored
         """
-
         super(DNN, self).__init__()
 
         # Initialise attributes
@@ -202,26 +206,29 @@ class DNN(nn.Module):
                         'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
                         'f1', 'f2']
         self.callbacks = []
+        self.checkpoints = []
         self.layers = nn.ModuleList()
         self.name = name
-        self.params = {}
+        self.history = {}
         self.path = os.path.join(path, self.name)
+        self.save_files = save_files
 
         # Initialise model
         self.float()
 
         # Create appropiate directories and files to 
         # store the trained models and the training data
-        try: 
-            os.mkdir(self.path)
+        if save_files:
+            try: 
+                os.mkdir(self.path)
 
-        except OSError: 
-            raise OSError(f"Directory already exists: {self.path}\nPlease select another name")
+            except OSError: 
+                raise OSError(f"Directory already exists: {self.path}\nPlease select another name")
 
-        with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
-            of.write("Metric,Epoch,Mode,Training,Validation")
-        with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
-            of.write("Model\tEpoch\n")
+            with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
+                of.write("Metric,Epoch,Mode,Training,Validation")
+            with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
+                of.write("Model\tEpoch\n")
 
     def add_callbacks(self, callbacks):
         """
@@ -254,7 +261,6 @@ class DNN(nn.Module):
         other : list or str
             Layer or list of layers to compose the model
         """
-
         if isinstance(layers, list):
             for layer in layers:
                 if len(self.layers) == 0:
@@ -336,7 +342,6 @@ class DNN(nn.Module):
         x : float
             Model prediction
         """
-
         for layer in self.layers:
             x = layer(x)
         return x
@@ -468,6 +473,7 @@ class DNN(nn.Module):
                 #self._check_callbacks()
 
         self._save_model(epoch, True)            
+        return self.checkpoints, self.history
 
     def _check_callbacks(self):
         """
@@ -481,9 +487,8 @@ class DNN(nn.Module):
         """
         Helper function to train_model(). Computes advanced model 
         performance metrics and records those the user has indicated
-        in the self.params dictionary.
+        in the self.history dictionary.
         """
-
         # Performance metrics
         accuracy =  ((TN + TP) / (TP + TN + FP + FN))  
         try:
@@ -507,35 +512,32 @@ class DNN(nn.Module):
         except ZeroDivisionError:
             f2 = 1
 
-        self.params[mode]['accuracy'].append(accuracy)
-        self.params[mode]['loss'].append(loss)
-        self.params[mode]['TP'].append(TP)
-        self.params[mode]['FP'].append(FP)
-        self.params[mode]['TN'].append(TN)
-        self.params[mode]['FN'].append(FN)
-        self.params[mode]['precision'].append(precision)
-        self.params[mode]['negative_predictive_value'].append(negative_predictive_value)
-        self.params[mode]['sensitivity'].append(sensitivity)
-        self.params[mode]['recall'].append(sensitivity)
-        self.params[mode]['f1'].append(f1)
-        self.params[mode]['f2'].append(f2)
+        self.history[mode]['accuracy'].append(accuracy)
+        self.history[mode]['loss'].append(loss)
+        self.history[mode]['TP'].append(TP)
+        self.history[mode]['FP'].append(FP)
+        self.history[mode]['TN'].append(TN)
+        self.history[mode]['FN'].append(FN)
+        self.history[mode]['precision'].append(precision)
+        self.history[mode]['negative_predictive_value'].append(negative_predictive_value)
+        self.history[mode]['sensitivity'].append(sensitivity)
+        self.history[mode]['recall'].append(sensitivity)
+        self.history[mode]['f1'].append(f1)
+        self.history[mode]['f2'].append(f2)
 
         if mode == 'validate':
-            self._print_params(epoch)
+            self._print_history(epoch)
             if epoch % 10 == 0 and epoch != 0:
                 self._save_model(epoch)
-            elif self.params['validate']['accuracy'][-1] >= 0.7:
+            elif self.history['validate']['accuracy'][-1] >= 0.7:
                 self._save_model(epoch)   
 
     def _init_training(self, metrics):
         """
-        Helper function to train_model(). Initialises the self.params dictionary
+        Helper function to train_model(). Initialises the self.history dictionary
         to be able to record training evolution.
         """
-
         print(f"Training Model using device: {self.device}\n")
-
-        self.params = {}
 
         if metrics == 'all':
             self.metrics = []
@@ -545,47 +547,58 @@ class DNN(nn.Module):
                     self.metrics.append(metric)
 
         for mode in ['train', 'validate']:
-            self.params[mode] = {}
+            self.history[mode] = {}
         
         for mode in ['train', 'validate']:
             for metric in self.available_metrics:
-                self.params[mode][metric] = []
+                self.history[mode][metric] = []
     
-    def _print_params(self, epoch):
+    def _print_history(self, epoch):
         """
         Helper function to train_model(). Outputs and stores the performance values for the predefined metrics
         at the end of each epoch.
         """
-
         print()
-        with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
+        if self.save_files:
+            with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
+                print(f'Epoch: {epoch+1}\tTraining\tValidation\n')
+                for metric in self.metrics:
+                    if metric in self.available_metrics:
+                        of.write(f"{metric},{epoch+1},{self.history['train'][metric][epoch]},{self.history['validate'][metric][epoch]}")
+                        print(f"{metric}:\t{self.history['train'][metric][epoch]}\t{self.history['validate'][metric][epoch]}")
+                    else:
+                        print(f"Warning: Metric: {metric} is not supported.\nAvailable metrics: {self.available_metrics}")
+        else:
             print(f'Epoch: {epoch+1}\tTraining\tValidation\n')
             for metric in self.metrics:
                 if metric in self.available_metrics:
-                    of.write(f"{metric},{epoch+1},{self.params['train'][metric][epoch]},{self.params['validate'][metric][epoch]}")
-                    print(f"{metric}:\t{self.params['train'][metric][epoch]}\t{self.params['validate'][metric][epoch]}")
+                    print(f"{metric}:\t{self.history['train'][metric][epoch]}\t{self.history['validate'][metric][epoch]}")
                 else:
                     print(f"Warning: Metric: {metric} is not supported.\nAvailable metrics: {self.available_metrics}")
-        
+            
     def _save_model(self, epoch, final=False):
         """
         Helper method to train_model(). It saves an instance of the model, and records
         to which epoch it corresponds to facilitate checking what its performance values
         were.
         """
-        previous_runs = -1
-        for file in os.listdir(self.path):
-            try:
-                if file.split('_')[0] == self.name.split('_')[0] and file.split('.')[1] == 'pt':
-                    previous_runs += 1
-            except IndexError:
-                continue
+        if self.save_files:
+            previous_runs = -1
+            for file in os.listdir(self.path):
+                try:
+                    if file.split('_')[0] == self.name.split('_')[0] and file.split('.')[1] == 'pt':
+                        previous_runs += 1
+                except IndexError:
+                    continue
 
-        current_run = previous_runs + 1
-        torch.save(self, os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.pt"))
-        with open(os.path.join(self.path, f"{self.name}.data"), "a") as of:
-            of.write(f"{self.name.split('_')[0]}_{current_run}.pt\t{epoch}\n")
-        
+            current_run = previous_runs + 1
+            torch.save(self, os.path.join(self.path, f"{self.name.split('_')[0]}_{current_run}.pt"))
+            with open(os.path.join(self.path, f"{self.name}.data"), "a") as of:
+                of.write(f"{self.name.split('_')[0]}_{current_run}.pt\t{epoch}\n")
+            
+        else:
+            self.checkpoints.append((epoch, copy.deepcopy(self)))
+
         if final:
             print()
             print("-"*21)
@@ -621,7 +634,7 @@ class MCDNN(DNN):
         Introduce a layer or list of layers to the specified channels. 
 
     """
-    def __init__(self, name, path, input_shape, n_channels=0):
+    def __init__(self, name, path, input_shape, n_channels=0, save_files=False):
 
         super(DNN, self).__init__()
         self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall',
@@ -632,20 +645,23 @@ class MCDNN(DNN):
         self.n_channels = n_channels
         self.input_shape = input_shape
         self.callbacks = []
+        self.checkpoints = []
         self.name = name
         self.path = os.path.join(path, self.name)
-        self.params = {}
+        self.history = {}
+        self.save_files = save_files
 
-        try: 
-            os.mkdir(self.path)
+        if self.save_files:
+            try: 
+                os.mkdir(self.path)
 
-        except OSError: 
-            raise OSError(f"Directory already existing: {self.path}\nPlease select another name")
+            except OSError: 
+                raise OSError(f"Directory already existing: {self.path}\nPlease select another name")
 
-        with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
-            of.write("Metric,Epoch,Mode,Training,Validation")
-        with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
-            of.write("Model\tEpoch\n")
+            with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
+                of.write("Metric,Epoch,Mode,Training,Validation")
+            with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
+                of.write("Model\tEpoch\n")
 
         if n_channels > 0:
             self.add_channels(Channel() * self.n_channels)
@@ -704,4 +720,4 @@ class MCDNN(DNN):
 
 if __name__ == "__main__":
     # Do something if this file is invoked on its own
-    print("Hello world")
+    help(ez.architectures)
