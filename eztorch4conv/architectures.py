@@ -276,9 +276,9 @@ class DNN(nn.Module):
 
         else:
             if len(self.layers) == 0:
-                    self.input_shape = layer.input_shape
-            elif len(self.layers) != 0 or layer.input_shape is None:        
-                layer.input_shape = self.prev_layer.calculate_output_shape()
+                    self.input_shape = layers.input_shape
+            elif len(self.layers) != 0 or layers.input_shape is None:        
+                layers.input_shape = self.prev_layer.calculate_output_shape()
 
             self.prev_layer = layers
             self.layers.append(layers.build_layer())  
