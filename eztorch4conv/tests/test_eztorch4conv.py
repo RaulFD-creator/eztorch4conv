@@ -118,6 +118,8 @@ def test_eztorch4conv_imported():
                                             ez.layers.conv3d(neurons=512, conv_kernel=3, batch_norm=False,
                                                             padding='same', pooling_type='max', dropout=0.25),
                                             ez.layers.flatten(),
+                                            ez.layers.conv1d(neurons=512, conv_kernel=3, batch_norm=False,
+                                                            padding='same', pooling_type='max', dropout=0.25),
                                             ez.layers.dense(neurons=512, dropout=0.5),
                                             ez.layers.dense(neurons=512, dropout=0.2),
                                             ez.layers.dense(neurons=256, dropout=0.4),
