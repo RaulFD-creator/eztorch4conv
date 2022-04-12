@@ -723,7 +723,3 @@ class MCDNN(DNN):
         for layer in self.layers:
             x = layer(x)
         return x
-
-if __name__ == "__main__":
-    # Do something if this file is invoked on its own
-    help(ez.architectures)
