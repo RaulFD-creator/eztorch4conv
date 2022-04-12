@@ -27,13 +27,9 @@ class Callback():
 
     target : int or float
             Value the metric has to achieve to satisfy the condition
-
-    action : function object
-            Function that describes the action the callback is supposed to perform
-            when the condition has been met
     """
 
-    def __init__(self, metric, target, action=None):
+    def __init__(self, metric, target, model, action=None):
         """
         Instanciates the class object
 
@@ -46,17 +42,13 @@ class Callback():
                 Name of the parameter that has to be checked to verify the condition
 
         target : int or float
-                Value the metric has to achieve to satisfy the condition
-            
-        action : function object
-                Function that describes the action the callback is supposed to perform
-                when the condition has been met
+                Value the metric has to achieve to satisfy the condition            
         """
         self.metric = metric
         self.target = target
-        self.action = action
+        self.model = model
 
-    def check_condition(self):
+    def check_condition(self, epoch):
         """
         Verifies whether the condition has been met
 
@@ -66,13 +58,12 @@ class Callback():
 
         False : when the condition was not satisfied
         """
-        if (self.metric != 'loss' and self.model.params[self.metric] >= self.target or
-            self.metric == 'loss' and self.model.params[self.metric] <= self.target):
+        if (self.metric != 'loss' and self.model.history['validate'][self.metric][epoch] >= self.target or
+            self.metric == 'loss' and self.model.history['validate'][self.metric][epoch] <= self.target):
             return True
         elif self.metric == 'epochs':
-                if len(self.model.params['loss']) % self.target == 0:
+                if epoch % self.target == 0:
                         return True
-
         else:
             return False
 
@@ -82,13 +73,13 @@ class Callback():
         Customizable action, that can be introduced to create custom callbacks
         """
 
-    def run(self):
+    def run(self, epoch):
         """
         Checks whether the condition has been met, and if so performs a predefined
         action.
         """
-        if self.check_condition():
-            self.action()
+        if self.check_condition(epoch):
+            self.action(epoch)
         
 class early_stop(Callback):
     """
@@ -100,8 +91,8 @@ class early_stop(Callback):
     -------
     action() : Saves the model and stops training
     """    
-    def action(self):
-        self.model.save_model(final=True)
+    def action(self, epoch):
+        self.model._save_model(epoch, final=True)
 
 class checkpoint(early_stop):
     """
@@ -113,5 +104,5 @@ class checkpoint(early_stop):
     -------
     action() : Saves the model
     """    
-    def action(self):
-        self.model.save_model(final=False)
+    def action(self, epoch):
+        self.model._save_model(epoch, final=False)

@@ -99,7 +99,7 @@ def test_eztorch4conv_imported():
                     if ARCHITECTURE == "dcnn":
                         print("Using DCNN architecture")
                         # Create DCNN
-                        model = ez.architectures.DNN(MODEL_NAME, os.path.join(".", "Models"))
+                        model = ez.architectures.DNN(MODEL_NAME, os.path.join(".", "Models"), False)
                         model.add_layers([
                                             ez.layers.conv3d(input_shape=(NUM_CHANNELS,16,16,16), neurons=32, 
                                                             conv_kernel=5, padding='same', pooling_type='max', 
@@ -128,13 +128,11 @@ def test_eztorch4conv_imported():
                                             ez.layers.dense(neurons=16, dropout=0.5),
                                             ez.layers.dense(neurons=1, dropout=0, activation_function=nn.Sigmoid())
                         ])
-
-
                         
 
                     elif ARCHITECTURE == "mcdcnn" or ARCHITECTURE == "mc-dcnn":
                         print("Using MC-DCNN architecture")
-                        model = ez.architectures.MCDNN(MODEL_NAME, os.path.join(".", "Models"), 6, (6,16,16,16))
+                        model = ez.architectures.MCDNN(MODEL_NAME, os.path.join(".", "Models"), 6, (6,16,16,16), False)
                         model.add_layers_to_channels('all', 
                             [
                                             ez.layers.conv3d(input_shape=(NUM_CHANNELS,16,16,16), neurons=32, 
@@ -169,6 +167,8 @@ def test_eztorch4conv_imported():
                             ])
 
 
+                    model.add_callbacks([ez.callbacks.early_stop(metric='accuracy', target=0.7, model=model), 
+                                        ez.callbacks.checkpoint(metric='accuracy', target=0.5, model=model)])
 
                     training_data = CustomDataset(TRAINING_DATA, MODEL_NAME, DATASET_PROPORTION, input_parameters)
                     train_dataloader = DataLoader(training_data, batch_size=BATCH_SIZE, shuffle=True)

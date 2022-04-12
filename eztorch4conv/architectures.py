@@ -7,7 +7,6 @@ model.
 import eztorch4conv as ez
 import torch
 import torch.nn as nn
-from .callbacks import Callback
 import os
 import copy
 
@@ -151,6 +150,10 @@ class DNN(nn.Module):
     save_files : bool
             Flag that indicates whether the history training
             and model checkpoints should be stored
+
+    stop_training : bool
+                Flag that indicates whether the training
+                should be stopped
                    
     scheduler : torch.optim scheduler 
             Pytorch object that contains a scheduler object
@@ -183,7 +186,7 @@ class DNN(nn.Module):
                 epochs, batch_size, metrics)
         Trains and validates the model      
     """
-    def __init__(self, name, path='.', save_files=False):
+    def __init__(self, name, path='.', save_files=True):
         """
         Create an instance of the DNN class as a Pytorch Module and 
         creates the appropriate directories and files required
@@ -247,7 +250,7 @@ class DNN(nn.Module):
         if isinstance(callbacks, list):
             for callback in callbacks:
                     self.add_callbacks(callback)
-        elif callbacks is Callback:
+        elif isinstance(callbacks, ez.callbacks.Callback):
             self.callbacks.append(callbacks)
         else:
             raise TypeError(f"Object {callbacks} is neither a callback nor a list of callbacks.")
@@ -470,18 +473,19 @@ class DNN(nn.Module):
                 self._eval_performance(TP, TN, FP, FN, loss, epoch, mode)
 
                 # Check callbacks
-                #self._check_callbacks()
+                if mode == 'validate': self._check_callbacks(epoch)
+            if self.stop_training: break
 
-        self._save_model(epoch, True)            
+        if not self.stop_training: self._save_model(epoch, True)            
         return self.checkpoints, self.history
 
-    def _check_callbacks(self):
+    def _check_callbacks(self, epoch):
         """
         Helper function to train_model(). Checks all callbacks and if necessary
         executes whatever function they contain.
         """
         for callback in self.callbacks:
-                callback.run()
+                callback.run(epoch)
 
     def _eval_performance(self, TP, TN, FP, FN, loss, epoch, mode):
         """
@@ -538,6 +542,7 @@ class DNN(nn.Module):
         to be able to record training evolution.
         """
         print(f"Training Model using device: {self.device}\n")
+        self.stop_training = False
 
         if metrics == 'all':
             self.metrics = []
@@ -604,6 +609,7 @@ class DNN(nn.Module):
             print("-"*21)
             print("| Stopping training |")
             print("-"*21)
+            self.stop_training = True
 
 class MCDNN(DNN):
     """
