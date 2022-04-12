@@ -125,8 +125,9 @@ def test_eztorch4conv_imported():
                                             ez.layers.dense(neurons=64, dropout=0.5),
                                             ez.layers.dense(neurons=32, dropout=0.5),
                                             ez.layers.dense(neurons=16, dropout=0.5),
-                                            ez.layers.dense(neurons=1, dropout=0, activation_function=nn.Sigmoid())
                         ])
+                        model.add_layers(ez.layers.dense(neurons=1, dropout=0, activation_function=nn.Sigmoid())
+)
                         
 
                     elif ARCHITECTURE == "mcdcnn" or ARCHITECTURE == "mc-dcnn":
@@ -162,9 +163,9 @@ def test_eztorch4conv_imported():
                                             ez.layers.dense(neurons=128, dropout=0.5),
                                             ez.layers.dense(neurons=64, dropout=0.5),
                                             ez.layers.dense(neurons=32, dropout=0.5),
-                                            ez.layers.dense(neurons=16, dropout=0.5),
-                                            ez.layers.dense(neurons=1, dropout=0, activation_function=nn.Sigmoid())
+                                            ez.layers.dense(neurons=16, dropout=0.5)
                             ])
+                        model.add_layers(ez.layers.dense(neurons=1, dropout=0, activation_function=nn.Sigmoid()))
 
 
                     model.add_callbacks([ez.callbacks.early_stop(metric='accuracy', target=0.7, model=model), 
