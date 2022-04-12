@@ -10,9 +10,9 @@ Welcome to eztorch4conv's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
-   architectures
-   tutorial
+   getting_started.rst
+   architectures.rst
+   tutorial.rst
 
 
 Indices and tables
