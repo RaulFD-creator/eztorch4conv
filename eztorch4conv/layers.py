@@ -161,31 +161,6 @@ class conv2d(conv3d):
         y = self.input_shape[2] - self.conv_kernel + 2 * self.conv_padding + 1
         return (n_channels, x, y)
     
-class conv1d(conv3d):
-    
-    def _create_batch_norm(self):
-        if self.batch_norm:
-            self.modules.append(nn.BatchNorm1d(self.in_channels))
-
-    def _create_main_layer(self):
-        
-        self.in_channels = self.input_shape
-        if self.padding == 'valid':
-            self.conv_padding = 0
-        elif self.padding == 'same':
-            self.conv_padding = self.conv_kernel // 2
-        elif self.padding is int:
-            self.conv_padding = self.padding
-        
-        self.modules.append(nn.Conv1d(in_channels=self.in_channels, out_channels=self.out_channels,
-                                    kernel_size=self.conv_kernel, padding=self.conv_padding))
-        
-    def calculate_output_shape(self):
-        n_channels = self.out_channels
-        x = self.input_shape - self.conv_kernel + 2 * self.conv_padding + 1
-        return (n_channels, x)
-
-    
 class dense(layer):
     def __init__(self, input_shape=None, **kwargs):
                
