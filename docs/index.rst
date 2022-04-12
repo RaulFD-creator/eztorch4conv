@@ -12,8 +12,7 @@ Welcome to eztorch4conv's documentation!
 
    getting_started
    architectures
-   api
-
+   tutorial
 
 
 Indices and tables
