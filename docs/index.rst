@@ -11,6 +11,7 @@ Welcome to eztorch4conv's documentation!
    :caption: Contents:
 
    getting_started
+   architectures
    api
 
 
