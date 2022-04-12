@@ -4,10 +4,9 @@ Unit and regression test for the eztorch4conv package.
 
 # Import package, test suite, and other packages as needed
 import sys
-
+import pandas as pd
 import pytest
-
-#import eztorch4conv
+import random
 import torch.nn as nn
 import numpy as np
 import torch
@@ -38,12 +37,12 @@ class CustomDataset(Dataset):
                 counter += 1
 
         output = self.labels["Binding"].value_counts()
-        os.system(f"touch Models/{model_name}/data_division.log")
-        with open(f"Models/{model_name}/data_division.log","a") as fo:
-            fo.write(f"{output}\n")
-        with open(f"Models/{model_name}/input.data","w") as fo:
-            for key, value in input_parameters.items():
-                fo.write(f"{key}: {value}\n")
+        #os.system(f"touch Models/{model_name}/data_division.log")
+        #with open(f"Models/{model_name}/data_division.log","a") as fo:
+        #    fo.write(f"{output}\n")
+        #with open(f"Models/{model_name}/input.data","w") as fo:
+        #    for key, value in input_parameters.items():
+        #        fo.write(f"{key}: {value}\n")
         
     def __len__(self):
         return len(self.labels)
@@ -76,8 +75,8 @@ def test_eztorch4conv_imported():
                         'device' : 'cpu',
                         'dataset_proportion' : 0.25,
                         'metrics' : 'all',
-                        'training_data' : "./dataset/reccord.csv",
-                        "validation_data" : "./dataset/reccord.csv"
+                        'training_data' : "eztorch4conv/tests/dataset/reccord.csv",
+                        "validation_data" : "eztorch4conv/tests/dataset/reccord.csv"
 
                     }
                     model_num += 1
@@ -132,7 +131,8 @@ def test_eztorch4conv_imported():
 
                     elif ARCHITECTURE == "mcdcnn" or ARCHITECTURE == "mc-dcnn":
                         print("Using MC-DCNN architecture")
-                        model = ez.architectures.MCDNN(MODEL_NAME, os.path.join(".", "Models"), 6, (6,16,16,16), False)
+                        model = ez.architectures.MCDNN(MODEL_NAME, os.path.join(".", "Models"), n_channels=6, input_shape=(6,16,16,16), 
+                                                        save_files=False)
                         model.add_layers_to_channels('all', 
                             [
                                             ez.layers.conv3d(input_shape=(NUM_CHANNELS,16,16,16), neurons=32, 
