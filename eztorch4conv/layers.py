@@ -143,6 +143,8 @@ class conv2d(conv3d):
 
     def _create_main_layer(self):
         
+        self.in_channels = self.input_shape[0]
+
         if self.padding == 'valid':
             self.conv_padding = 0
         elif self.padding == 'same':
@@ -167,7 +169,7 @@ class conv1d(conv3d):
 
     def _create_main_layer(self):
         
-        self.in_channels = self.input_shape[0]
+        self.in_channels = self.input_shape
         if self.padding == 'valid':
             self.conv_padding = 0
         elif self.padding == 'same':
@@ -180,7 +182,7 @@ class conv1d(conv3d):
         
     def calculate_output_shape(self):
         n_channels = self.out_channels
-        x = self.input_shape[1] - self.conv_kernel + 2 * self.conv_padding + 1
+        x = self.input_shape - self.conv_kernel + 2 * self.conv_padding + 1
         return (n_channels, x)
 
     
