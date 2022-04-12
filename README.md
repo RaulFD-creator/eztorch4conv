@@ -3,7 +3,7 @@ Easy creation of 3D Deep Convolutional Neural Networks (3D-DCNN) or Multi-channe
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/RaulFD-creator/eztorch4conv/workflows/CI/badge.svg)](https://github.com/RaulFD-creator/eztorch4conv/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/RaulFD-creator/eztorch4conv/branch/main/graph/badge.svg?token=U6t3PP1uZX)](https://codecov.io/gh/RaulFD-creator/eztorch4conv)
-[![Documentation Status](https://readthedocs.org/projects/eztorch4conv/badge/?version=latest)](https://eztorch4conv.readthedocs.io/en/latest/?badge=latest)
+#[![Documentation Status](https://readthedocs.org/projects/eztorch4conv/badge/?version=latest)](https://eztorch4conv.readthedocs.io/en/latest/?badge=latest)
 
 
 A Python package with out of the box pytorch classes to easily design and train DCNN and MC-DCNN models. 
