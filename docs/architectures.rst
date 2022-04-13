@@ -11,7 +11,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   pytorch_lightning_spells.architectures
-   pytorch_lightning_spells.layers
-   pytorch_lightning_spells.callbacks
+   eztorch4conv.architectures
+   eztorch4conv.layers
+   eztorch4conv.callbacks
 
