@@ -72,7 +72,7 @@ class Channel(nn.Module):
 
         Parameters
         ----------
-        other : list or str
+        layers : list or str
             Layer or list of layers to compose the model
         """
       
