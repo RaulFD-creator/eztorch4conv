@@ -1,6 +1,5 @@
 .. automodule:: eztorch4conv
    :autosummary:
-   :autosummary-no-nesting:
    :members:
    :undoc-members:
    :show-inheritance:
