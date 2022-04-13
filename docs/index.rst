@@ -10,16 +10,10 @@ Welcome to eztorch4conv's documentation!
 
 Contents
 --------
-
 .. toctree::
    :maxdepth: 3
-   
-   Architectures <eztorch4conv.architectures>
-   Layers <eztorch4conv.layers>
-   Callbacks <eztorch4conv.callbacks>
+   :caption: Contents:
 
-**Indices and tables**
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   index
+   architectures 
+  
