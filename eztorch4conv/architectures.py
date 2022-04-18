@@ -631,7 +631,7 @@ class MCDNN(DNN):
     def __init__(self, name, path, input_shape, n_channels=0, save_files=False):
 
         super(DNN, self).__init__()
-        self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall',
+        self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'specificity', 'precision', 'recall',
                 'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
                 'f1', 'f2']
         self.channels = nn.ModuleList()
