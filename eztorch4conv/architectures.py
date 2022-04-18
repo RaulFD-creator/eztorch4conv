@@ -630,7 +630,7 @@ class MCDNN(DNN):
     """
     def __init__(self, name, path, input_shape, n_channels=0, save_files=False):
 
-        super(MCDNN, self).__init__(name, path, input_shape, n_channels, save_files)
+        super(DNN, self).__init__()
         self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall',
                 'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
                 'f1', 'f2']
