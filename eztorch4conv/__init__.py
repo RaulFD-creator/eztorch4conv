@@ -4,10 +4,10 @@ DCNN and MC-DCNN models
 """
 
 # Add imports here
-from .architectures import *
-from .layers import *
-from .callbacks import *
-from .utils import *
+from .architectures import Channel, DNN, MCDNN
+from .layers import layer, conv3d, dense, flatten
+from .callbacks import Callback, early_stop, checkpoint
+from .utils import parse_inputs
 
 # Handle versioneer
 from ._version import get_versions

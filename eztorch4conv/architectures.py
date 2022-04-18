@@ -1,3 +1,5 @@
+# Copyright by Raúl Fernández Díaz
+
 """
 Architectures module within eztorch4conv library. It contains the basic classes necessary to construct
 DNN and MC-DNN models with Pytorch in a simple and efficient way. Classes are specifically designed
@@ -205,7 +207,7 @@ class DNN(nn.Module):
         super(DNN, self).__init__()
 
         # Initialise attributes
-        self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall',
+        self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'specificity', 'precision', 'recall',
                         'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
                         'f1', 'f2']
         self.callbacks = []
@@ -432,10 +434,8 @@ class DNN(nn.Module):
                         loss.backward()
                         # Update parameters
                         self.optimizer.step()
-
                         # Update learning rate
-                        if self.scheduler is not None:
-                            self.scheduler.step()
+                        if self.scheduler is not None: self.scheduler.step()
                     
                     # Initialise batch model performance counters
                     TP_batch = 0
@@ -445,17 +445,10 @@ class DNN(nn.Module):
 
                     # Calculate batch model performance
                     for idx in range(len(labels)):
-                        if outputs[idx] > 0.5 and labels[idx] == 1:
-                            TP_batch += 1
-
-                        elif outputs[idx] < 0.5 and labels[idx] == 1:
-                            FN_batch += 1
-
-                        elif outputs[idx] < 0.5 and labels[idx] == 0:
-                            TN_batch += 1
-                        
-                        elif outputs[idx] > 0.5 and labels[idx] == 0:
-                            FP_batch += 1
+                        if outputs[idx] > 0.5 and labels[idx] == 1: TP_batch += 1
+                        elif outputs[idx] < 0.5 and labels[idx] == 1: FN_batch += 1
+                        elif outputs[idx] < 0.5 and labels[idx] == 0: TN_batch += 1
+                        elif outputs[idx] > 0.5 and labels[idx] == 0: FP_batch += 1
 
                     # Calculate model batch accuracy
                     batch_acc = (TP_batch+TN_batch)/(TP_batch+TN_batch+FP_batch+FN_batch)
@@ -495,26 +488,24 @@ class DNN(nn.Module):
         """
         # Performance metrics
         accuracy =  ((TN + TP) / (TP + TN + FP + FN))  
-        try:
-            precision = TP / (TP + FP) 
-        except ZeroDivisionError:
-            precision = 1
-        try:
-            negative_predictive_value = TN / (TN + FN)
-        except ZeroDivisionError:
-            negative_predictive_value = 1
-        try:
-            sensitivity = TP / (TP + FN)  # Same as recall
-        except ZeroDivisionError:
-            sensitivity = 1
-        try:
-            f1 = (2 * precision * sensitivity) / (precision + sensitivity)
-        except ZeroDivisionError:
-            f1 = 1
-        try: 
-            f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
-        except ZeroDivisionError:
-            f2 = 1
+
+        try: precision = TP / (TP + FP) 
+        except ZeroDivisionError: precision = 0
+
+        try: negative_predictive_value = TN / (TN + FN)
+        except ZeroDivisionError: negative_predictive_value = 0
+
+        try: sensitivity = TP / (TP + FN)  # Same as recall
+        except ZeroDivisionError: sensitivity = 0
+
+        try: specificity = TN / (TN + FP)
+        except ZeroDivisionError: specificity = 0
+
+        try: f1 = (2 * precision * sensitivity) / (precision + sensitivity)
+        except ZeroDivisionError: f1 = 0
+
+        try:  f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
+        except ZeroDivisionError: f2 = 0
 
         self.history[mode]['accuracy'].append(accuracy)
         self.history[mode]['loss'].append(loss)
@@ -525,16 +516,13 @@ class DNN(nn.Module):
         self.history[mode]['precision'].append(precision)
         self.history[mode]['negative_predictive_value'].append(negative_predictive_value)
         self.history[mode]['sensitivity'].append(sensitivity)
+        self.history[mode]['specificity'].append(specificity)
         self.history[mode]['recall'].append(sensitivity)
         self.history[mode]['f1'].append(f1)
         self.history[mode]['f2'].append(f2)
 
         if mode == 'validate':
             self._print_history(epoch)
-            if epoch % 10 == 0 and epoch != 0:
-                self._save_model(epoch)
-            elif self.history['validate']['accuracy'][-1] >= 0.7:
-                self._save_model(epoch)   
 
     def _init_training(self, metrics):
         """
@@ -642,7 +630,7 @@ class MCDNN(DNN):
     """
     def __init__(self, name, path, input_shape, n_channels=0, save_files=False):
 
-        super(DNN, self).__init__()
+        super(MCDNN, self).__init__()
         self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'precision', 'recall',
                 'TP', 'TN', 'FP', 'FN', 'negative_predictive_value',
                 'f1', 'f2']

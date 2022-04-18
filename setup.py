@@ -15,7 +15,7 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 try:
     with open("README.md", "r") as handle:
         long_description = handle.read()
-except:
+except FileNotFoundError or OSError:
     long_description = None
 
 
@@ -29,7 +29,7 @@ setup(
     long_description_content_type="text/markdown",
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    license='LGPLv3',
+    license='3-clause-BSD',
 
     # Which Python importable modules should be included when your package is installed
     # Handled automatically by setuptools. Use 'exclude' to prevent some specific

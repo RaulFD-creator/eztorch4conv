@@ -1,21 +1,23 @@
 # Copyright by Raúl Fernández Díaz
 
-"""Callbacks: utilities called at certain points during model training."""
+"""
+Callbacks module within the eztorch4conv library. It contains the basic class blueprint
+for constructing callbacks for the DCNN and MC-DCNN models, and 2 of the most common implementations:
+early stopping and checkpoint.
+"""
 
 from abc import abstractmethod
 
 
 class Callback():
     """
-    Basic wrapper to easily wrap callbacks in eztorch4conv environment.
+    Basic class to easily construct callbacks in eztorch4conv environment.
 
     Methods
     -------
-    __init__() : Creates an instance of the class
+    check_condition(epoch) : Verifies whether a certain condition has been met
 
-    check_condition() : Verifies whether a certain condition has been met
-
-    run() : Performs a certain action if the condition was met
+    run(epoch) : Performs a certain action if the condition was met
 
     Attributes
     ----------
@@ -68,7 +70,7 @@ class Callback():
             return False
 
     @abstractmethod
-    def action(self):
+    def action(self, epoch):
         """
         Customizable action, that can be introduced to create custom callbacks
         """
@@ -83,9 +85,9 @@ class Callback():
         
 class early_stop(Callback):
     """
-    Wrapper for an early stop callback class. Inherits methods from Callback class.
+    Early stop callback class. Inherits methods from Callback class.
     At the end of an epoch checks whether a condition has been met and if so it saves
-    the model.
+    the model and stops the training.
 
     Methods
     -------
@@ -96,9 +98,9 @@ class early_stop(Callback):
 
 class checkpoint(early_stop):
     """
-    Wrapper for a checkpoint callbcak class. Inherits methods from Callback class.
+    Checkpoint callbcak class. Inherits methods from Callback class.
     At the end of an epoch checks whether a condition has been met and if so it saves
-    the model.
+    the model without stopping training.
 
     Methods
     -------
