@@ -74,7 +74,7 @@ class Channel(nn.Module):
 
         Parameters
         ----------
-        other : list or str
+        layers : list or str
             Layer or list of layers to compose the model
         """
       
@@ -245,7 +245,7 @@ class DNN(nn.Module):
 
         Parameters
         ----------
-        other : list or str
+        callbacks : list or str
             Callback or list of callbacks to regulate
             in the model
         """
@@ -263,7 +263,7 @@ class DNN(nn.Module):
 
         Parameters
         ----------
-        other : list or str
+        layers : list or str
             Layer or list of layers to compose the model
         """
         if isinstance(layers, list):
@@ -670,8 +670,8 @@ class MCDNN(DNN):
         else:
             raise TypeError(f"Object {channels} is neither a channel nor a list of channels")
 
-    def add_layers(self, other):
-        for layer in other:
+    def add_layers(self, layers):
+        for layer in layers:
             if len(self.layers) == 0:
                 layer.input_shape = 0
                 for channel in self.channels:
