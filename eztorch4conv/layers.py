@@ -420,7 +420,7 @@ class flatten(layer):
         flatten : flatten class instance
         """
         self.input_shape = []
-        super.__init__(input_shape=self.input_shape, neurons=0)
+        super().__init__(input_shape=self.input_shape, neurons=0)
 
     def build_layer(self):
         """
