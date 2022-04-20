@@ -8,7 +8,7 @@ Easy creation of 3D Deep Convolutional Neural Networks (3D-DCNN) or Multi-channe
 
 A Python package with out of the box pytorch classes to easily design and train DCNN and MC-DCNN models. 
 
-Working on my Master's Thesis I found that there were not many easy to use implementations of MC-DCNN models or even DCNN in Pytorch. This package I hope will provide a clear user-friendly environment to simplify the Pytorch sintaxis by wrapping most of its functionality in easier to understand main classes. First stage of the development will be to introduce basic functionality for DCNN and MC-DCNN models. The original purpose of this package was to train these two types of networks for predicting binding sites in voxelized representations of proteins.
+Working on my Master's Thesis I found that there were not many easy to use implementations of MC-DCNN models or even DCNN in Pytorch. This package I hope will provide a clear user-friendly environment to simplify the Pytorch sintaxis by wrapping most of its functionality in easier to understand main classes. Phase 1 of development has been finished and the project is ready to publish a beta version 0.1, with complex focused on binary classification.
 
 ### Copyright
 
