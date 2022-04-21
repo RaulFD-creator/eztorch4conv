@@ -413,7 +413,7 @@ class DNN(nn.Module):
                                         self.input_shape[3]
                                         ).to(self.device)
 
-                    labels = labels.float().unsqueeze(1).to(self.device)
+                    labels = labels.float().unsqueeze(1)
 
                     # Clear gradients
                     self.optimizer.zero_grad()
