@@ -412,9 +412,8 @@ class DNN(nn.Module):
                                         self.input_shape[2],
                                         self.input_shape[3]
                                         ).to(self.device)
-
-                    labels = labels.float().unsqueeze(1)
-
+                    labels = labels.float().unsqueeze(1).to(self.device)
+                   
                     # Clear gradients
                     self.optimizer.zero_grad()
 
@@ -456,11 +455,11 @@ class DNN(nn.Module):
                     if mode == 'train':
                         print(f"Epoch {epoch+1}/{epochs}: Batch {i}/{len_training//batch_size} \tLoss: {loss.data}\t Accuracy: {batch_acc}")
                 
-                # Compute basic model performance
-                TP += TP_batch
-                TN += TN_batch
-                FP += FP_batch
-                FN += FN_batch
+                    # Compute basic model performance
+                    TP += TP_batch
+                    TN += TN_batch
+                    FP += FP_batch
+                    FN += FN_batch
 
                 # Compute advanced model performance metrics
                 self._eval_performance(TP, TN, FP, FN, loss, epoch, mode)
