@@ -18,15 +18,21 @@ git clone https://github.com/RaulFD-creator/eztorch4conv
 
 2. Install the package using pip:
 
-> pip install -e eztorch4conv/
+```bash
+pip install -e eztorch4conv/
+```
 
 3. Install the required dependencies either using pip:
 
-> pip install pytorch pandas cudatoolkit
+```bash
+pip install pytorch pandas cudatoolkit
+```
 
 3b. Or using anaconda:
 
-> conda install pytorch pandas cudatoolkit -c conda-forge
+```bash
+conda install pytorch pandas cudatoolkit -c conda-forge
+```
 
 
 ### Copyright
