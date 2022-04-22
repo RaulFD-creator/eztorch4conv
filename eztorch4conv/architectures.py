@@ -231,7 +231,7 @@ class DNN(nn.Module):
                 raise OSError(f"Directory already exists: {self.path}\nPlease select another name")
 
             with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
-                of.write("Metric,Epoch,Mode,Training,Validation")
+                of.write("Metric,Epoch,Mode,Training,Validation\n")
             with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
                 of.write("Model\tEpoch\n")
 
@@ -556,7 +556,7 @@ class DNN(nn.Module):
                 print(f'Epoch: {epoch+1}\tTraining\tValidation\n')
                 for metric in self.metrics:
                     if metric in self.available_metrics:
-                        of.write(f"{metric},{epoch+1},{self.history['train'][metric][epoch]},{self.history['validate'][metric][epoch]}")
+                        of.write(f"{metric},{epoch+1},{self.history['train'][metric][epoch]},{self.history['validate'][metric][epoch]}n")
                         print(f"{metric}:\t{self.history['train'][metric][epoch]}\t{self.history['validate'][metric][epoch]}")
                     else:
                         print(f"Warning: Metric: {metric} is not supported.\nAvailable metrics: {self.available_metrics}")
@@ -652,7 +652,7 @@ class MCDNN(DNN):
                 raise OSError(f"Directory already existing: {self.path}\nPlease select another name")
 
             with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
-                of.write("Metric,Epoch,Mode,Training,Validation")
+                of.write("Metric,Epoch,Mode,Training,Validation\n")
             with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
                 of.write("Model\tEpoch\n")
 
