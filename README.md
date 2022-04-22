@@ -25,14 +25,16 @@ pip install -e eztorch4conv/
 3. Install the required dependencies either using pip:
 
 ```bash
-pip install pytorch pandas cudatoolkit
+pip install pytorch pandas
 ```
 
 3b. Or using anaconda:
 
 ```bash
-conda install pytorch pandas cudatoolkit -c conda-forge
+conda install pytorch pandas -c conda-forge
 ```
+
+NOTE: To train the networks with GPU support it is necessary to use the appropriate CUDA drivers and to install the `cudatoolkit` package version appropriate for those drivers. More information on: https://developer.nvidia.com/cuda-toolkit.
 
 
 ### Copyright
