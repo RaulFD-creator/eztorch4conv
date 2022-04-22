@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import os
 import copy
+import time
 
 class Channel(nn.Module):
     """
@@ -231,7 +232,7 @@ class DNN(nn.Module):
                 raise OSError(f"Directory already exists: {self.path}\nPlease select another name")
 
             with open(os.path.join(self.path, f'{self.name}_training.log'), "w") as of:
-                of.write("Metric,Epoch,Mode,Training,Validation\n")
+                of.write("Metric,Epoch,Mode,")
             with open(os.path.join(self.path, f"{self.name}.data"), "w") as of:
                 of.write("Model\tEpoch\n")
 
@@ -403,7 +404,7 @@ class DNN(nn.Module):
 
                 # Loop through the items in the DataLoaders
                 for i, (images, labels) in enumerate(train_dataloader if mode == 'train' else validate_dataloader):
-                    
+                    start = time.time()
                     # Load data and send to device
                     inputs = images.view(
                                         len(images),
@@ -452,8 +453,9 @@ class DNN(nn.Module):
                     # Calculate model batch accuracy
                     batch_acc = (TP_batch+TN_batch)/(TP_batch+TN_batch+FP_batch+FN_batch)
 
+                    end = time.time()
                     if mode == 'train':
-                        print(f"Epoch {epoch+1}/{epochs}: Batch {i}/{len_training//batch_size} \tLoss: {loss.data}\t Accuracy: {batch_acc}")
+                        print(f"Epoch {epoch+1}/{epochs}: Batch {i}/{len_training//batch_size} Loss: {loss.data} Accuracy: {batch_acc} Time: {end-start} s")
                 
                     # Compute basic model performance
                     TP += TP_batch
@@ -519,9 +521,9 @@ class DNN(nn.Module):
         self.history[mode]['recall'].append(sensitivity)
         self.history[mode]['f1'].append(f1)
         self.history[mode]['f2'].append(f2)
-
+        
         if mode == 'validate':
-            self._print_history(epoch)
+            self._print_history(epoch, mode)
 
     def _init_training(self, metrics):
         """
@@ -537,6 +539,10 @@ class DNN(nn.Module):
             for metric in self.available_metrics:
                 if metric != 'recall':
                     self.metrics.append(metric)
+        
+        if isinstance(metrics, list):
+            for metric in metrics:
+                self.metrics.append(metric) if metric in self.available_metrics else print(f"Warning: Metric: {metric} is not supported.\nPlease one of the supported metrics: {self.available_metrics}")
 
         for mode in ['train', 'validate']:
             self.history[mode] = {}
@@ -544,22 +550,35 @@ class DNN(nn.Module):
         for mode in ['train', 'validate']:
             for metric in self.available_metrics:
                 self.history[mode][metric] = []
+
+        if self.save_files:
+            k = 2
+            for metric in self.metrics:
+                with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
+                    of.write(f"{metric},") if k < len(self.available_metrics) else of.write(f"{metric}\n")
+                    k += 1
+
+
     
-    def _print_history(self, epoch):
+    def _print_history(self, epoch : int, mode : str):
         """
         Helper function to train_model(). Outputs and stores the performance values for the predefined metrics
         at the end of each epoch.
         """
         print()
+        num_metrics = len(self.available_metrics)
         if self.save_files:
             with open(os.path.join(self.path, f'{self.name}_training.log'), "a") as of:
                 print(f'Epoch: {epoch+1}\tTraining\tValidation\n')
-                for metric in self.metrics:
-                    if metric in self.available_metrics:
-                        of.write(f"{metric},{epoch+1},{self.history['train'][metric][epoch]},{self.history['validate'][metric][epoch]}n")
-                        print(f"{metric}:\t{self.history['train'][metric][epoch]}\t{self.history['validate'][metric][epoch]}")
-                    else:
-                        print(f"Warning: Metric: {metric} is not supported.\nAvailable metrics: {self.available_metrics}")
+
+                for submode in ['train', 'validate']:
+                    of.write(f"{epoch+1},{submode}")
+                    k = 2
+                    for metric in self.metrics:
+                        of.write(f",{self.history[submode][metric][epoch]}") if k < num_metrics else of.write(f",{self.history[submode][metric][epoch]}\n") 
+                        if submode == 'train':
+                            print(f"{metric}:\t{self.history['train'][metric][epoch]}\t{self.history['validate'][metric][epoch]}")
+                        k += 1
         else:
             print(f'Epoch: {epoch+1}\tTraining\tValidation\n')
             for metric in self.metrics:
@@ -710,3 +729,9 @@ class MCDNN(DNN):
         for layer in self.layers:
             x = layer(x)
         return x
+
+class DCNN(DNN):
+    pass
+
+class MCDCNN(MCDNN):
+    pass
