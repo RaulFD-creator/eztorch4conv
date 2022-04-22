@@ -22,13 +22,13 @@ git clone https://github.com/RaulFD-creator/eztorch4conv
 pip install -e eztorch4conv/
 ```
 
-3. Install the required dependencies either using pip:
+3. Install the required dependencies either using **pip**:
 
 ```bash
 pip install pytorch pandas
 ```
 
-3b. Or using anaconda:
+3b. Or using **anaconda**:
 
 ```bash
 conda install pytorch pandas -c conda-forge
