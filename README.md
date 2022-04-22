@@ -12,7 +12,9 @@ Working on my Master's Thesis I found that there were not many easy to use imple
 
 1. Clone this repository in a directory:
 
-> git clone https://github.com/RaulFD-creator/eztorch4conv
+```bash
+git clone https://github.com/RaulFD-creator/eztorch4conv
+```
 
 2. Install the package using pip:
 
