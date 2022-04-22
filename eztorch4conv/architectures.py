@@ -401,10 +401,10 @@ class DNN(nn.Module):
                 TN = 0
                 FP = 0
                 FN = 0
-
+                start = time.time()
                 # Loop through the items in the DataLoaders
                 for i, (images, labels) in enumerate(train_dataloader if mode == 'train' else validate_dataloader):
-                    start = time.time()
+                    
                     # Load data and send to device
                     inputs = images.view(
                                         len(images),
@@ -463,6 +463,7 @@ class DNN(nn.Module):
                     FP += FP_batch
                     FN += FN_batch
 
+                    start = time.time()
                 # Compute advanced model performance metrics
                 self._eval_performance(TP, TN, FP, FN, loss, epoch, mode)
 
