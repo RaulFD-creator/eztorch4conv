@@ -6,7 +6,7 @@ Easy creation of 3D Deep Convolutional Neural Networks (3D-DCNN) or Multi-channe
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/RaulFD-creator/eztorch4conv.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/RaulFD-creator/eztorch4conv/context:python)
 
 
-A Python package with out of the box pytorch classes to easily design and train DCNN and MC-DCNN models. 
+A Python package with out-of-the-box pytorch classes to easily design and train DCNN and MC-DCNN models. 
 
 Working on my Master's Thesis I found that there were not many easy to use implementations of MC-DCNN models or even DCNN in Pytorch. This package I hope will provide a clear user-friendly environment to simplify the Pytorch sintaxis by wrapping most of its functionality in easier to understand main classes. Phase 1 of development has been finished and the project can be installed by following this instructions:
 
