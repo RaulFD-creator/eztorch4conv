@@ -10,7 +10,7 @@ A Python package with out-of-the-box pytorch classes to easily design and train 
 
 Working on my Master's Thesis I found that there were not many easy to use implementations of MC-DCNN models or even DCNN in Pytorch. This package I hope will provide a clear user-friendly environment to simplify the Pytorch sintaxis by wrapping most of its functionality in easier to understand main classes. Phase 1 of development has been finished and the project can be installed by following this instructions:
 
-1. Clone this repository in a directory: 
+1. Clone this repository in a directory:
 
 ```bash
 git clone https://github.com/RaulFD-creator/eztorch4conv
@@ -34,7 +34,7 @@ pip install pytorch pandas
 conda install pytorch pandas -c conda-forge
 ```
 
-NOTE: To train the networks with GPU support it is necessary to use the appropriate CUDA drivers and to install the `cudatoolkit` package version appropriate for those drivers. More information on: https://developer.nvidia.com/cuda-toolkit.
+NOTE: To train the networks with GPU support it is necessary to use the appropriate CUDA drivers and to install the corresponding version `cudatoolkit` package. More information on: https://developer.nvidia.com/cuda-toolkit.
 
 
 ### Copyright
