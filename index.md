@@ -34,7 +34,7 @@ pip install pytorch pandas
 conda install pytorch pandas -c conda-forge
 ```
 
-NOTE: To train the networks with GPU support it is necessary to use the appropriate CUDA drivers and to install the corresponding version `cudatoolkit` package. More information on: https://developer.nvidia.com/cuda-toolkit.
+NOTE: To train the networks with GPU support it is necessary to use the appropriate CUDA drivers and to install the corresponding version of the `cudatoolkit` package. More information on: https://developer.nvidia.com/cuda-toolkit.
 
 
 ### Copyright
