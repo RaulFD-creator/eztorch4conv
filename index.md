@@ -12,11 +12,13 @@ Working on my Master's Thesis I found that there were not many easy to use imple
 
 1. Clone this repository in a directory:
 
+
 ```bash
 git clone https://github.com/RaulFD-creator/eztorch4conv
 ```
 
 2. Install the package using pip:
+
 
 ```bash
 pip install -e eztorch4conv/
@@ -24,11 +26,13 @@ pip install -e eztorch4conv/
 
 3. Install the required dependencies either using **pip**:
 
+
 ```bash
 pip install pytorch pandas
 ```
 
 3b. Or using **anaconda**:
+
 
 ```bash
 conda install pytorch pandas -c conda-forge
