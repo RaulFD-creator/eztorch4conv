@@ -9,7 +9,10 @@ that incorporates an eztorch4conv-compatible sintaxis for the Pytorch flatten la
 """
 
 from abc import abstractmethod
+
+import torch
 import torch.nn as nn
+import torch.nn.init as init
 
 class layer():
     """
@@ -445,3 +448,72 @@ class flatten(layer):
                     Integer with the shape of the output of the layer
         """
         return  self.input_shape[0] * self.input_shape[1] * self.input_shape[2] * self.input_shape[3]
+
+class Fire(nn.Module):
+    def __init__(self, inplanes: int, squeeze_planes: int, expand1x1_planes: int, expand3x3_planes: int,
+                batch_norm : bool=True, dropout : float=0) -> None:
+        super().__init__()
+        self.inplanes = inplanes
+        self.squeeze = nn.Conv3d(inplanes, squeeze_planes, kernel_size=1)
+        self.squeeze_activation = nn.ELU(inplace=True)
+        self.expand1x1 = nn.Conv3d(squeeze_planes, expand1x1_planes, kernel_size=1)
+        self.expand1x1_activation = nn.ELU(inplace=True)
+        self.expand3x3 = nn.Conv3d(squeeze_planes, expand3x3_planes, kernel_size=3, padding=1)
+        self.expand3x3_activation = nn.ELU(inplace=True)
+        if batch_norm: self.batch_norm = nn.BatchNorm3d(inplanes)
+        if batch_norm: self.batch_norm_flag = batch_norm
+        self.dropout = dropout
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.squeeze_activation(self.squeeze(self.batch_norm(x))) if self.batch_norm_flag else self.squeeze_activation(self.squeeze(x))
+        return torch.cat(
+            [self.expand1x1_activation(self.expand1x1(x)), self.expand3x3_activation(self.expand3x3(x))], 1
+        )
+
+
+class SqueezeNet(nn.Module):
+    def __init__(self, num_classes: int = 1, dropout: float = 0.5) -> None:
+        super().__init__()
+        self.num_classes = num_classes
+ 
+        self.features = nn.Sequential(
+            nn.Conv3d(6, 96, kernel_size=7, stride=1, padding=3),
+            nn.ELU(inplace=True),
+            #nn.MaxPool3d(kernel_size=2, stride=2, ceil_mode=True),
+            Fire(96, 16, 64, 64),
+            Fire(128, 16, 64, 64),
+            Fire(128, 32, 128, 128),
+            #nn.MaxPool3d(kernel_size=2, stride=2, ceil_mode=True),
+            Fire(256, 32, 128, 128),
+            Fire(256, 48, 192, 192),
+            Fire(384, 48, 192, 192),
+            Fire(384, 64, 256, 256),
+            nn.Conv3d(512, 64, kernel_size=5, stride=1, padding=2),
+            #nn.MaxPool3d(kernel_size=3, stride=2, ceil_mode=True),
+            Fire(64, 64, 256, 256),
+        )
+        
+        # Final convolution is initialized differently from the rest
+        final_conv = nn.Conv3d(512, self.num_classes, kernel_size=1)
+        self.classifier = nn.Sequential(
+            nn.Dropout(p=dropout), final_conv, nn.ELU(inplace=True), nn.AdaptiveAvgPool3d((3, 3, 3)),
+            nn.Flatten(), nn.Linear(27, 1), nn.Sigmoid()
+        )
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv3d):
+                if m is final_conv:
+                    init.normal_(m.weight, mean=0.0, std=0.01)
+                else:
+                    init.kaiming_uniform_(m.weight)
+                if m.bias is not None:
+                    init.constant_(m.bias, 0)
+        self.layers = nn.ModuleList()
+
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+
+  
