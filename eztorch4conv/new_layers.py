@@ -18,7 +18,10 @@ class conv3d(nn.Module):
 
     
     def forward(self, x : torch.Tensor) -> torch.Tensor:
-        return self.dropout(self.activation_function((self.main_layer(self.batch_norm(x)))))
+        if self.batch_norm is not None:
+            return self.dropout(self.activation_function((self.main_layer(self.batch_norm(x)))))
+        else:
+            return self.dropout(self.activation_function((self.main_layer(x))))
 
 class dense(nn.Module):
     def __init__(self, in_features : int, out_features : int, dropout : float=0, 

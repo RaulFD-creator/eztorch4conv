@@ -1,3 +1,4 @@
+from decimal import DivisionByZero
 import eztorch4conv as ez
 import torch
 import torch.nn as nn
@@ -153,7 +154,7 @@ class trainer():
                                         self.input_shape[3]
                                         ).to(self.model.device)
                     labels = labels.float().unsqueeze(1).to(self.model.device)
-                   
+
                     # Clear gradients
                     self.model.optimizer.zero_grad()
 
@@ -163,7 +164,6 @@ class trainer():
                         # If training mode, foward propagation; 
                         # if validation  mode, evaluate samples
                         outputs = self.model(inputs)
-
                         # Calculate loss
                         loss = self.model.error(outputs, labels)
 
@@ -175,23 +175,15 @@ class trainer():
                         self.model.optimizer.step()
                         # Update learning rate
                         if self.scheduler is not None: self.scheduler.step()
-                    
-                    # Initialise batch model performance counters
-                    TP_batch = 0
-                    FN_batch = 0
-                    TN_batch = 0
-                    FP_batch = 0
 
-                    # Calculate batch model performance
-                    for idx in range(len(labels)):
-                        if outputs[idx] > 0.5 and labels[idx] == 1: TP_batch += 1
-                        elif outputs[idx] < 0.5 and labels[idx] == 1: FN_batch += 1
-                        elif outputs[idx] < 0.5 and labels[idx] == 0: TN_batch += 1
-                        elif outputs[idx] > 0.5 and labels[idx] == 0: FP_batch += 1
+                    TP_batch, FN_batch, TN_batch, FP_batch = self._eval_batch(outputs, labels)                    
 
                     # Calculate model batch accuracy
-                    batch_acc = (TP_batch+TN_batch)/(TP_batch+TN_batch+FP_batch+FN_batch)
-
+                    try:
+                        batch_acc = (TP_batch+TN_batch)/(TP_batch+TN_batch+FP_batch+FN_batch)
+                    except DivisionByZero:
+                        batch_acc = 0
+                        
                     end = time.time()
                     if mode == 'train':
                         print(f"Epoch {epoch+1}/{epochs}: Batch {i}/{len_training//batch_size} Loss: {loss.data} Accuracy: {batch_acc} Time: {end-start} s")
@@ -212,6 +204,19 @@ class trainer():
 
         if not self.stop_training: self._save_model(epoch, True)            
         return self.checkpoints, self.history
+
+    def _eval_batch(self, outputs : torch.Tensor, labels : torch.Tensor):
+        # Initialise batch model performance counters
+        TP_batch, FN_batch, TN_batch, FP_batch = 0, 0, 0, 0
+
+        # Calculate batch model performance
+        for idx in range(len(labels)):
+            if outputs[idx] > 0.5 and labels[idx] == 1: TP_batch += 1
+            elif outputs[idx] < 0.5 and labels[idx] == 1: FN_batch += 1
+            elif outputs[idx] < 0.5 and labels[idx] == 0: TN_batch += 1
+            elif outputs[idx] > 0.5 and labels[idx] == 0: FP_batch += 1
+
+        return TP_batch, FN_batch, TN_batch, FP_batch
 
     def _check_callbacks(self, epoch):
         """
@@ -245,7 +250,7 @@ class trainer():
         try: f1 = (2 * precision * sensitivity) / (precision + sensitivity)
         except ZeroDivisionError: f1 = 0
 
-        try:  f2 = (1 + 2**2) * (2 * precision * sensitivity) / ((2**2) * precision + sensitivity)
+        try:  f2 =  (5 * precision * sensitivity) / (4 * precision + sensitivity)
         except ZeroDivisionError: f2 = 0
 
         self.history[mode]['accuracy'].append(accuracy)
@@ -263,7 +268,7 @@ class trainer():
         self.history[mode]['f2'].append(f2)
         
         if mode == 'validate':
-            self._print_history(epoch, mode)
+            self._print_history(epoch)
 
     def _init_training(self, metrics):
         """
@@ -298,7 +303,7 @@ class trainer():
                     of.write(f"{metric},") if k < len(self.available_metrics) else of.write(f"{metric}\n")
                     k += 1
   
-    def _print_history(self, epoch : int, mode : str):
+    def _print_history(self, epoch : int):
         """
         Helper function to train_model(). Outputs and stores the performance values for the predefined metrics
         at the end of each epoch.
