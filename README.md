@@ -6,9 +6,36 @@ Easy creation of 3D Deep Convolutional Neural Networks (3D-DCNN) or Multi-channe
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/RaulFD-creator/eztorch4conv.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/RaulFD-creator/eztorch4conv/context:python)
 
 
-A Python package with out of the box pytorch classes to easily design and train DCNN and MC-DCNN models. 
+A Python package with out-of-the-box pytorch classes to easily design and train DCNN and MC-DCNN models. 
 
-Working on my Master's Thesis I found that there were not many easy to use implementations of MC-DCNN models or even DCNN in Pytorch. This package I hope will provide a clear user-friendly environment to simplify the Pytorch sintaxis by wrapping most of its functionality in easier to understand main classes. Phase 1 of development has been finished and the project is ready to publish a beta version 0.1, with complex focused on binary classification.
+Working on my Master's Thesis I found that there were not many easy to use implementations of MC-DCNN models or even DCNN in Pytorch. This package I hope will provide a clear user-friendly environment to simplify the Pytorch sintaxis by wrapping most of its functionality in easier to understand main classes. Phase 1 of development has been finished and the project can be installed by following this instructions:
+
+1. Clone this repository in a directory:
+
+```bash
+git clone https://github.com/RaulFD-creator/eztorch4conv
+```
+
+2. Install the package using pip:
+
+```bash
+pip install -e eztorch4conv/
+```
+
+3. Install the required dependencies either using **pip**:
+
+```bash
+pip install pytorch pandas
+```
+
+3b. Or using **anaconda**:
+
+```bash
+conda install pytorch pandas -c conda-forge
+```
+
+NOTE: To train the networks with GPU support it is necessary to use the appropriate CUDA drivers and to install the corresponding version of the `cudatoolkit` package. More information on: https://developer.nvidia.com/cuda-toolkit.
+
 
 ### Copyright
 
