@@ -4,11 +4,9 @@ DCNN and MC-DCNN models
 """
 
 # Add imports here
-from .architectures import Channel, DNN, MCDNN
-from .layers import layer, conv3d, dense, flatten
 from .callbacks import Callback, early_stop, checkpoint
-from .new_architectures import dcnn, trainer
-from .new_layers import conv3d, dense, fire3d
+from .architectures import dcnn, trainer, mcdcnn
+from .layers import conv3d, dense, fire3d
 from .utils import parse_inputs
 
 # Handle versioneer

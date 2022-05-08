@@ -1,0 +1,20 @@
+{
+    "training_data": "Cu_fold",
+    "batch_size": 32,
+    "num_epochs": 20,
+    "lr": 1e-4,
+    "weight_decay": 1e-7,
+    "name": "Cu_ReLU",
+    "num_classes": 1,
+    "num_channels": 6,
+    "experiment": "Activation_function",
+    "device": "cuda",
+    "proportion": 1,
+    "metrics": "all",
+    "d_features": 0.1,
+    "d_classifier": 0.5,
+    "batch_norm": "True",
+    "activation": "ReLU",
+    "scheduler_step": 1,
+    "scheduler_rate": 0.5
+}

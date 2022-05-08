@@ -1,519 +1,60 @@
-# Copyright by Raúl Fernández Díaz
-
-"""
-Layers module within the eztorch4conv library. It contains the basic class blueprint
-for constructing new layers for DCNN and MC-DCNN models, and 3 of the most common
-implementations: conv3d that includes all the elements that may be needed for a 3D convolutional
-layer, dense that includes all the elements that may be needed for a dense layer, and flatten
-that incorporates an eztorch4conv-compatible sintaxis for the Pytorch flatten layer.
-"""
-
-from abc import abstractmethod
-
 import torch
 import torch.nn as nn
-import torch.nn.init as init
 
-class layer():
-    """
-    Basic class blueprint for easy construction of eztorch4conv layers.
-
-    Methods
-    -------
-    build_layer() : Creates a torch.nn.Sequential object that contains
-                    all the different objects that conform the layer.
-
-    calculate_output_shape() : Returns an int or tuple with the dimensions of
-                                the output of the layer to facilitate
-                                the automatic creation of the next layer in 
-                                the model.
-
-    Attributes
-    ----------
-    activation_function : torch activation function object
-                Torch activation function object
-                By default : torch.nn.ELU()
-    dropout : float
-        Proportion of neurons to be randomly dropout
-    input_shape : tuple
-            Tuple with the dimensions of the input data with shape
-            (n_channels, dimensions) in the case of 3D convolution it
-            will be (n_channels, x, y, z)
-    modules : list 
-        Inner list that accumulates all the objects that will conform
-        the layer
-    neurons : int
-        Number of neurons that will compose the layer
-    """
-    def __init__(self, input_shape=None, **kwargs):
-        """
-        Instanciates the class object.
-
-        Parameters
-        ----------
-        activation_function : torch activation function object
-            Torch activation function object
-            By default : torch.nn.ELU()
-        dropout : float
-            Proportion of neurons to be randomly dropout.
-            By default : 0
-        input_shape : tuple
-                Tuple with the dimensions of the input data with shape
-                (n_channels, x, y, z)
-        neurons : int
-            Number of neurons that will compose the layer
-
-        Returns
-        -------
-        layer : layer class instance
-        """
-        self.input_shape = input_shape
-        self.modules = []
-
-        # Check all input arguments and set default values if needed. 
-        # Handle any errors that may arise.
-        try: self.neurons = kwargs['neurons']
-        except KeyError: raise KeyError('Please specify how many neurons comprise each layer')
-        
-        try: self.activation_function = kwargs['activation_function']
-        except KeyError: self.activation_function = nn.ELU()
-        
-        try: self.dropout = kwargs['dropout']
-        except KeyError: self.dropout = None
-        
-    def _create_dropout(self):
-        """
-        Helper function to build_layer(). It creates the dropout object
-        and appends it to the modules list.
-        """
-        # Create dropout layer only if self.dropout is not None
-        if str(self.dropout).lower() != "none": self.modules.append(nn.Dropout(self.dropout))
-    
-    def _create_activation_function(self):
-        """
-        Helper function to build_layer(). It appends the activation
-        function object to the modules list.
-        """
-        self.modules.append(self.activation_function)
-
-    @abstractmethod
-    def _create_pooling(self):
-        """
-        Helper function to build_layer(). It creates a pooling object and appends it to
-        the modules list. It is only necessary in convolutional layers and has to be explictly 
-        programmed for custom layers.
-        """
-    
-    @abstractmethod
-    def _create_main_layer(self): 
-        """       
-        Helper function to build_layer(). It creates the main layer object and appends it
-        to the modules list. This method has to be explictly programmed for custom layers.
-        """
-
-    @abstractmethod
-    def _create_batch_norm(self):
-        """
-        Helper function to build_layer(). It creates a batch normalization object and appends it to
-        the modules list. It is only necessary in convolutional layers and has to be explictly 
-        programmed for custom layers.
-        """
-
-    @abstractmethod
-    def calculate_output_shape(self):
-        """
-        Computes the shape of the output of the layer to facilitate the automatic
-        creation of subsequent layers. Has to be explictly programmed for custom
-        layers.
-
-        Returns
-        -------
-        output_shape : int or tuple
-                    Dimensions of the output of the layer
-        """
-
-    def build_layer(self):
-        """
-        Creates a torch.nn.Sequential object from the modules list that includes all the predefined
-        objects that the layer class requires.
-
-        Returns
-        -------
-        layer : torch.nn.Sequential()
-            torch.nn.Sequential object that contains all the predefined objects required by the layer class
-        """
-        # Order of the layers is important, only one that could be moved is batch_norm, though
-        # literature seems to agree it is best if it is the very first layer of the model.
-        self._create_batch_norm()
-        self._create_main_layer()
-        self._create_activation_function()
-        self._create_dropout()
-        self._create_pooling()
-        return nn.Sequential(*self.modules)
-        
-class conv3d(layer):
-    """
-    3D Convolutional layer implementation in eztorch4conv environment. 
-    It includes easy creation of dropout, batch normalization, and 
-    various kinds of pooling. It inherits the methods and attributes from the layer class.
-
-    Attributes
-    ----------
-    batch_norm : bool
-            Flag that indicates whether there should be batch normalization.
-            By default : False
-    conv_kernel : int or tuple
-            Indicates the shape or dimensions of the convolutional kernel applied.
-            If int the shape of the kernel will be cubic.
-    padding : str or int
-            Indicates whether padding should be added so as to not reduce the 
-            size of the output during the convolution ('same') or if should 
-            not be introduced ('valid'). If int is provided, the padding will
-            incorporate as many zeros as the padding value indicates.
-            By default : 'same'
-    pooling_kernel : int or tuple
-                Indicates the shape or dimensions of the pooling kernel applied.
-                If int the shape of the kernel will be cubic.
-                By default : 2    
-    pooling_stride : int
-                Indicates how the pooling kernel will move through the image.
-                By default : pooling_kernel
-    pooling_type : str
-            Indicates the type of pooling that should be introduced, if any.
-            Options are: max and average.
-            By defauld : None
-    """
-    def __init__(self, input_shape=None, **kwargs):  
-        """
-        Instanciates the class object. Parameters are to be introduced
-        explictily as if they were keys in a dictionary. 
-        
-        Parameters
-        ----------
-        activation_function : torch activation function object
-                        Torch activation function object
-                        By default : torch.nn.ELU()
-        batch_norm : bool
-                Flag that indicates whether there should be batch normalization.
-                By default : False
-        conv_kernel : int or tuple
-                Indicates the shape or dimensions of the convolutional kernel applied.
-                If int the shape of the kernel will be cubic.
-        dropout : float
-            Proportion of neurons to be randomly dropout.
-            By default : 0
-        input_shape : tuple
-                Tuple with the dimensions of the input data with shape
-                (n_channels, x, y, z). Has only to be introduced in the
-                first layer of the model or in the case of MC-DCNN
-                in the first layer of a channel
-        neurons : int
-            Number of neurons that will compose the layer
-        padding : str
-            Indicates whether padding should be added so as to not reduce the 
-            size of the output during the convolution ('same') or if should 
-            not be introduced ('valid').
-            By default : 'same'
-        pooling_kernel : int or tuple
-                    Indicates the shape or dimensions of the pooling kernel applied.
-                    If int the shape of the kernel will be cubic.
-                    By default : 2    
-        pooling_stride : int
-                    Indicates how the pooling kernel will move through the image.
-                    By default : pooling_kernel
-        pooling_type : str
-                Indicates the type of pooling that should be introduced, if any.
-                Options are: max and average.
-                By defauld : None
-
-        Returns
-        -------
-        conv3d : conv3d class instance
-
-        Example
-        -------
-        >>> ez.layers.conv3d(input_shape=(6,16,16,16), neurons=32, 
-                conv_kernel=5, padding='same', pooling_type='max', 
-                dropout=0, batch_norm=True)
-        """ 
-        # Check all input argumetns and set the default values if needed. 
-        # Handle any errors that may arise.
-        arguments = kwargs.keys()     
-
-        if 'neurons' not in arguments: raise KeyError('Please specify how many neurons comprise each layer')
-
-        if 'activation_function' not in arguments: kwargs['activation_function'] = nn.ELU()
-
-        if 'dropout' not in arguments: kwargs['dropout'] = 0
-
-        if 'batch_norm' not in arguments: self.batch_norm = False
-        else:
-            if kwargs['batch_norm'] == True or kwargs['batch_norm'] == False: self.batch_norm = kwargs['batch_norm'] 
-            else: raise ValueError(f"Value {kwargs['batch_norm']} is not an available option of batch_norm.\nbatch_norm has to be either True or False.")
-
-        if 'conv_kernel' in arguments: self.conv_kernel = kwargs['conv_kernel']
-        else: raise KeyError('Please provide an specific kernel shape for conv layer')
-
-        if 'padding' in arguments: self.padding = kwargs['padding']
-        else: self.padding = 'same'
-
-        if 'pooling_type' in arguments: self.pooling_type = kwargs['pooling_type']
-        else: self.pooling_type = None
-
-        if 'pooling_kernel' in arguments: self.pooling_kernel = kwargs['pooling_kernel']
-        else: self.pooling_kernel = 2
-
-        if 'pooling_stride' in arguments: self.pooling_stride = kwargs['pooling_stride']
-        else: self.pooling_stride = self.pooling_kernel
-        
-        # Pass rest of the arguments to the __init__ function of parent class
-        super().__init__(input_shape, 
-                        neurons=kwargs['neurons'], 
-                        activation_function=kwargs['activation_function'],
-                        dropout = kwargs['dropout']
-                        )
-
-    def _create_pooling(self):
-        """
-        Helper function to build_layer(). It creates the appropriate pooling layer
-        and appends it to the modules list.
-        """
-        # Create appropriate pooling layer only if self.pooling_type is not None
-        if str(self.pooling_type).lower() != "none":
-            if self.pooling_type.lower() == "max":
-                self.modules.append(nn.MaxPool3d(kernel_size=self.pooling_kernel,stride=self.pooling_stride))
-            elif self.pooling_type.lower() == "avg":
-                self.modules.append(nn.AvgPool3d(kernel_size=self.pooling_kernel,stride=self.pooling_stride))
-    
-    def _create_batch_norm(self):
-        """
-        Helper function to build_layer(). It creates the appropriate batch normalization layer
-        and appends it to the modules list.
-        """
-        # Create a batch normalization layer that considers as many inputs as outputs had the previous
-        # layer
-        self.in_channels = self.input_shape[0]
-
-        if self.batch_norm: self.modules.append(nn.BatchNorm3d(self.in_channels))
-        
-    def _create_main_layer(self):
-        """
-        Helper function to build_layer(). It creates the main 3D convolutional layer, with
-        the appropriate padding and appends it to the modules list.
-        """
-        # Create the 3D convolutional layer with as many inputs as outputs the previous layers
-        # had and with the appropriate padding style.
-        self.in_channels = self.input_shape[0]
-
-        if self.padding == 'valid': self.conv_padding = 0
-        elif self.padding == 'same': self.conv_padding = self.conv_kernel // 2 
-        elif isinstance(self.padding, int): self.conv_padding = self.padding
-        
-        self.modules.append(nn.Conv3d(in_channels=self.in_channels, out_channels=self.neurons,
-                                    kernel_size=self.conv_kernel, padding=self.conv_padding))
-    
-    def calculate_output_shape(self):
-        """
-        Calculates the output shape of the layer to facilitate the creation of 
-        subsequent layers of the model.
-
-        Returns
-        -------
-        output_shape : tuple
-                    Tuple with the dimensions of the output of the layer,
-                    (n_channels, x, y, z)
-        """
-        n_channels = self.neurons
-
-        # Calculate the effect of padding and convolution on output size
-        x = self.input_shape[1] - self.conv_kernel + 2 * self.conv_padding + 1 
-        y = self.input_shape[2] - self.conv_kernel + 2 * self.conv_padding + 1
-        z = self.input_shape[3] - self.conv_kernel + 2 * self.conv_padding + 1 
-
-        # Calculate the effect of pooling
-        if str(self.pooling_type).lower() != "none":
-            x = x // self.pooling_kernel 
-            y = y // self.pooling_kernel
-            z = z // self.pooling_kernel 
-
-        return (n_channels, x, y, z)
-
-class dense(layer):
-    """
-    Dense layer implementation in eztorch4conv environment.
-    It includes easy creation of dropout. It inherits the methods and
-    attributes from the layer class
-    """
-    def __init__(self, input_shape=None, **kwargs):
-        """
-        Instanciates the class object. Parameters are to be introduced
-        explictily as if they were keys in a dictionary. 
-
-        Parameters
-        ----------
-        activation_function : torch activation function object
-            Torch activation function object
-            By default : torch.nn.ELU()
-        dropout : float
-            Proportion of neurons to be randomly dropout
-            By default : 0
-        input_shape : tuple
-                Tuple with the dimensions of the input data with shape
-                (n_channels, x, y, z)
-        neurons : int
-            Number of neurons that will compose the layer
-        
-        Returns
-        -------
-        dense : dense class instance
-
-        Example 
-        -------
-        ez.layers.dense(neurons=1, dropout=0, activation_function=nn.Sigmoid())
-        """
-        # Check all input argumetns and set the default values if needed. 
-        # Handle any errors that may arise.
-
-        arguments = kwargs.keys()
-
-        if 'neurons' not in arguments: raise KeyError('Please specify how many neurons comprise each layer')
-
-        if 'activation_function' not in arguments: kwargs['activation_function'] = nn.ELU()
-
-        if 'dropout' not in arguments: kwargs['dropout'] = 0
-
-        super().__init__(input_shape, neurons=kwargs['neurons'], activation_function=kwargs['activation_function'],
-                        dropout = kwargs['dropout'])
-        
-    def _create_main_layer(self):
-        """
-        Helper function to build_layer(). It creates the main dense layer, with
-        the appropriate input and output shapes and appends it to the modules list.
-        """
-        # Create a dense layer with as many inputs as outputs the previous layer had
-
-        self.in_channels = self.input_shape
-        self.modules.append(nn.Linear(in_features=self.in_channels, out_features=self.neurons))
-
-    def calculate_output_shape(self):
-        """
-        Calculates the output shape of the layer to facilitate the creation of 
-        subsequent layers of the model.
-
-        Returns
-        -------
-        output_shape : int
-                    Integer with the shape of the output of the layer
-        """
-        return self.neurons
-
-class flatten(layer):
-    """
-    Flatten implementation in eztorch4conv environment.
-    It includes the calculation of output shape that is necessary
-    for the automatic creation of all the layers in the model. It 
-    inherits attributes and methods from the layer class.
-    """
-    def __init__(self):
-        """       
-        Instanciates the class object.
-
-        Returns
-        -------
-        flatten : flatten class instance
-        """
-        self.input_shape = []
-        super().__init__(input_shape=self.input_shape, neurons=0)
-
-    def build_layer(self):
-        """
-        Creates a torch.nn.Flatten(1, -1) layer.
-
-        Returns
-        -------
-        layer : torch.nn.Flatten(-1, 1)
-            torch.nn.Flatten(-1, 1) to transform multidimensional
-            tensors to a 1D tensor. 
-        """
-        return nn.Flatten(1, -1)
-
-    def calculate_output_shape(self):
-        """
-        Calculates the output shape of the layer to facilitate the creation of 
-        subsequent layers of the model.
-
-        Returns
-        -------
-        output_shape : int
-                    Integer with the shape of the output of the layer
-        """
-        return  self.input_shape[0] * self.input_shape[1] * self.input_shape[2] * self.input_shape[3]
-
-class Fire(nn.Module):
-    def __init__(self, inplanes: int, squeeze_planes: int, expand1x1_planes: int, expand3x3_planes: int,
-                batch_norm : bool=True, dropout : float=0) -> None:
+class conv3d(nn.Module):
+    def __init__(self, in_channels : int, out_channels : int, kernel_size : int=3 or tuple, stride : int=1,  
+                dropout : float=0, batch_norm : bool=False, padding : str='valid',
+                activation_function : torch.Tensor=nn.ELU(inplace=True)) -> None:
         super().__init__()
-        self.inplanes = inplanes
-        self.squeeze = nn.Conv3d(inplanes, squeeze_planes, kernel_size=1)
-        self.squeeze_activation = nn.ELU(inplace=True)
-        self.expand1x1 = nn.Conv3d(squeeze_planes, expand1x1_planes, kernel_size=1)
-        self.expand1x1_activation = nn.ELU(inplace=True)
-        self.expand3x3 = nn.Conv3d(squeeze_planes, expand3x3_planes, kernel_size=3, padding=1)
-        self.expand3x3_activation = nn.ELU(inplace=True)
-        if batch_norm: self.batch_norm = nn.BatchNorm3d(inplanes)
+
+        # Parsing inputs
+        if not isinstance(padding, int): self.padding = kernel_size // 2 if padding == 'same' else 0
+        else: self.padding = padding
+
+        self.batch_norm = nn.BatchNorm3d(in_channels) if batch_norm else None
+        self.main_layer = nn.Conv3d(in_channels, out_channels, kernel_size, stride, self.padding)
+        self.activation_function = activation_function
+        self.dropout = nn.Dropout(dropout)
+
+    
+    def forward(self, x : torch.Tensor) -> torch.Tensor:
+        if self.batch_norm is not None:
+            return self.dropout(self.activation_function((self.main_layer(self.batch_norm(x)))))
+        else:
+            return self.dropout(self.activation_function((self.main_layer(x))))
+
+class dense(nn.Module):
+    def __init__(self, in_features : int, out_features : int, dropout : float=0, 
+                activation_function : torch.Tensor=nn.ELU()) -> None:
+        super().__init__()
+        self.main_layer = nn.Linear(in_features, out_features)
+        self.activation_function = activation_function
+        self.dropout = nn.Dropout(dropout)
+
+        self.output_shape = out_features
+
+
+    def forward(self, x : torch.Tensor) -> torch.Tensor:
+        return(self.dropout(self.activation_function(self.main_layer(x))))
+
+class fire3d(nn.Module):
+    def __init__(self, in_channels: int, squeeze_channels: int, expand1x1_channels: int, expandnxn_channels: int,
+                batch_norm : bool=True, dropout : float=0, activation_function = nn.ELU(inplace=True),
+                expand_kernel : int=3) -> None:
+        super().__init__()
+        self.in_channels = in_channels
+        self.squeeze = nn.Conv3d(in_channels, squeeze_channels, kernel_size=1)
+        self.squeeze_activation = activation_function
+        self.expand1x1 = nn.Conv3d(squeeze_channels, expand1x1_channels, kernel_size=1)
+        self.expand1x1_activation = activation_function
+        self.expandnxn = nn.Conv3d(squeeze_channels, expandnxn_channels, kernel_size=expand_kernel, padding=expand_kernel//2)
+        self.expandnxn_activation = activation_function
+        if batch_norm: self.batch_norm = nn.BatchNorm3d(in_channels)
         if batch_norm: self.batch_norm_flag = batch_norm
         self.dropout = dropout
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.squeeze_activation(self.squeeze(self.batch_norm(x))) if self.batch_norm_flag else self.squeeze_activation(self.squeeze(x))
         return torch.cat(
-            [self.expand1x1_activation(self.expand1x1(x)), self.expand3x3_activation(self.expand3x3(x))], 1
+            [self.expand1x1_activation(self.expand1x1(x)), self.expandnxn_activation(self.expandnxn(x))], 1
         )
-
-
-class SqueezeNet(nn.Module):
-    def __init__(self, num_classes: int = 1, dropout: float = 0.5) -> None:
-        super().__init__()
-        self.num_classes = num_classes
- 
-        self.features = nn.Sequential(
-            nn.Conv3d(6, 96, kernel_size=7, stride=1, padding=3),
-            nn.ELU(inplace=True),
-            #nn.MaxPool3d(kernel_size=2, stride=2, ceil_mode=True),
-            Fire(96, 16, 64, 64),
-            Fire(128, 16, 64, 64),
-            Fire(128, 32, 128, 128),
-            #nn.MaxPool3d(kernel_size=2, stride=2, ceil_mode=True),
-            Fire(256, 32, 128, 128),
-            Fire(256, 48, 192, 192),
-            Fire(384, 48, 192, 192),
-            Fire(384, 64, 256, 256),
-            nn.Conv3d(512, 64, kernel_size=5, stride=1, padding=2),
-            #nn.MaxPool3d(kernel_size=3, stride=2, ceil_mode=True),
-            Fire(64, 64, 256, 256),
-        )
-        
-        # Final convolution is initialized differently from the rest
-        final_conv = nn.Conv3d(512, self.num_classes, kernel_size=1)
-        self.classifier = nn.Sequential(
-            nn.Dropout(p=dropout), final_conv, nn.ELU(inplace=True), nn.AdaptiveAvgPool3d((3, 3, 3)),
-            nn.Flatten(), nn.Linear(27, 1), nn.Sigmoid()
-        )
-
-        for m in self.modules():
-            if isinstance(m, nn.Conv3d):
-                if m is final_conv:
-                    init.normal_(m.weight, mean=0.0, std=0.01)
-                else:
-                    init.kaiming_uniform_(m.weight)
-                if m.bias is not None:
-                    init.constant_(m.bias, 0)
-        self.layers = nn.ModuleList()
-
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.features(x)
-        x = self.classifier(x)
-        return x
-
-  
