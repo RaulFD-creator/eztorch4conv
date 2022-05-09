@@ -96,6 +96,20 @@ class early_stop(Callback):
     def action(self, epoch):
         self.model._save_model(epoch, final=True)
 
+    def check_condition(self, epoch):
+        """
+        Verifies whether the condition has been met
+
+        Returns
+        -------
+        True : when the condition has been satisfied
+
+        False : when the condition was not satisfied
+        """
+        if len(epoch) >= 2:
+            return self.model.history['train'][self.metric][epoch] - self.model.history['train'][self.metric][epoch-1] > self.target
+        
+
 class checkpoint(early_stop):
     """
     Checkpoint callbcak class. Inherits methods from Callback class.
