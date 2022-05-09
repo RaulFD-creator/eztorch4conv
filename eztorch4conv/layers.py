@@ -65,28 +65,28 @@ class InceptionD(nn.Module):
         super().__init__()
         if conv_block is None:
             conv_block = conv3d
-        self.branch3x3_1 = conv_block(in_channels, neurons_nxnxn, kernel_size=1, batch_norm=True)
-        self.branch3x3_2 = conv_block(neurons_nxnxn, neurons_3x3x3, kernel_size=3, stride=2, batch_norm=True)
+        self.branch3x3x3_1 = conv_block(in_channels, neurons_nxnxn, kernel_size=1, batch_norm=True)
+        self.branch3x3x3_2 = conv_block(neurons_nxnxn, neurons_3x3x3, kernel_size=3, stride=2, batch_norm=True)
 
         pad = kernel_size // 2
-        self.branch7x7x3_1 = conv_block(in_channels, neurons_nxnxn, kernel_size=1, batch_norm=True)
-        self.branch7x7x3_2 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=(1, 1, kernel_size), padding=(0, 0, pad), batch_norm=True)
-        self.branch7x7x3_3 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=(kernel_size, 1, 1), padding=(pad, 0, 0), batch_norm=True)
-        self.branch7x7x3_4 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=(1, kernel_size, 1), padding=(0, pad, 0), batch_norm=True)
-        self.branch7x7x3_5 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=3, stride=2, batch_norm=True, padding='valid')
+        self.branch7x7x7_1 = conv_block(in_channels, neurons_nxnxn, kernel_size=1, batch_norm=True)
+        self.branch7x7x7_2 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=(1, 1, kernel_size), padding=(0, 0, pad), batch_norm=True)
+        self.branch7x7x7_3 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=(kernel_size, 1, 1), padding=(pad, 0, 0), batch_norm=True)
+        self.branch7x7x7_4 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=(1, kernel_size, 1), padding=(0, pad, 0), batch_norm=True)
+        self.branch7x7x7_5 = conv_block(neurons_nxnxn, neurons_nxnxn, kernel_size=3, stride=2, batch_norm=True, padding='valid')
 
     def _forward(self, x: torch.Tensor) -> List[torch.Tensor]:
-        branch3x3 = self.branch3x3_1(x)
-        branch3x3 = self.branch3x3_2(branch3x3)
+        branch3x3 = self.branch3x3x3_1(x)
+        branch3x3 = self.branch3x3x3_2(branch3x3)
 
-        branch7x7x3 = self.branch7x7x3_1(x)
-        branch7x7x3 = self.branch7x7x3_2(branch7x7x3)
-        branch7x7x3 = self.branch7x7x3_3(branch7x7x3)
-        branch7x7x3 = self.branch7x7x3_4(branch7x7x3)
-        branch7x7x3 = self.branch7x7x3_5(branch7x7x3)
+        branch7x7x7 = self.branch7x7x7_1(x)
+        branch7x7x7 = self.branch7x7x7_2(branch7x7x7)
+        branch7x7x7 = self.branch7x7x7_3(branch7x7x7)
+        branch7x7x7 = self.branch7x7x7_4(branch7x7x7)
+        branch7x7x7 = self.branch7x7x7_5(branch7x7x7)
 
         branch_pool = nn.F.max_pool3d(x, kernel_size=2, stride=2)
-        outputs = [branch3x3, branch7x7x3, branch_pool]
+        outputs = [branch3x3, branch7x7x7, branch_pool]
         return outputs
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
