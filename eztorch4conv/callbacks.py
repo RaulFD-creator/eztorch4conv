@@ -60,14 +60,8 @@ class Callback():
 
         False : when the condition was not satisfied
         """
-        if (self.metric != 'loss' and self.model.history['validate'][self.metric][epoch] >= self.target or
+        return (self.metric != 'loss' and self.model.history['validate'][self.metric][epoch] >= self.target or
             self.metric == 'loss' and self.model.history['validate'][self.metric][epoch] <= self.target):
-            return True
-        elif self.metric == 'epochs':
-                if epoch % self.target == 0:
-                        return True
-        else:
-            return False
 
     @abstractmethod
     def action(self, epoch):
@@ -102,9 +96,11 @@ class early_stop(Callback):
 
         Returns
         -------
-        True : when the condition has been satisfied
+        True : Metric has changed more than target from one
+               epoch to the next.
 
-        False : when the condition was not satisfied
+        False : Metric has not changed more than target from
+                one epoch to the next.
         """
         if len(epoch) >= 2:
             return self.model.history['train'][self.metric][epoch] - self.model.history['train'][self.metric][epoch-1] > self.target
