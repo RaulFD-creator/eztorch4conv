@@ -106,7 +106,7 @@ class early_stop(Callback):
 
         False : when the condition was not satisfied
         """
-        if len(epoch) >= 2:
+        if epoch >= 2:
             return self.model.history['train'][self.metric][epoch] - self.model.history['train'][self.metric][epoch-1] > self.target
         
 

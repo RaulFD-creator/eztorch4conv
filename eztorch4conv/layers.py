@@ -28,7 +28,7 @@ class dense(nn.Module):
         super().__init__()
         self.main_layer = nn.Linear(in_features, out_features)
         self.activation_function = activation_function
-        self.batch_norm = batch_norm
+        self.batch_norm = nn.BatchNorm1d(in_features) if batch_norm else None
         self.dropout = nn.Dropout(dropout)
 
         self.output_shape = out_features
