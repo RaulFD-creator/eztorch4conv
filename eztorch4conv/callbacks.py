@@ -60,8 +60,8 @@ class Callback():
 
         False : when the condition was not satisfied
         """
-        return (self.metric != 'loss' and self.model.history['validate'][self.metric][epoch] >= self.target or
-            self.metric == 'loss' and self.model.history['validate'][self.metric][epoch] <= self.target):
+        return (self.metric != 'loss' and self.model.history['validate'][self.metric][epoch] >= self.target or 
+        self.metric == 'loss' and self.model.history['validate'][self.metric][epoch] <= self.target)
 
     @abstractmethod
     def action(self, epoch):
