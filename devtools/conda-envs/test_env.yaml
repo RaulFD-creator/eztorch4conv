@@ -2,8 +2,9 @@ name: test
 channels:
 
   - conda-forge
-
+  - pytorch
   - defaults
+  
 dependencies:
     # Base depends
   - python
@@ -15,6 +16,7 @@ dependencies:
   - codecov
   - pytorch
   - pandas
+  - torchvision
 
     # Pip-only installs
   #- pip:
