@@ -19,8 +19,10 @@ class conv3d(nn.Module):
 
     
     def forward(self, x : torch.Tensor) -> torch.Tensor:
+        x = self.main_layer(x)
         x = self.batch_norm(x) if self.batch_norm is not None else x
-        return self.dropout(self.activation_function((self.main_layer(x)))) 
+        x = self.activation_function(x)
+        return self.dropout(x) if self.dropout is not None else x
 
 class dense(nn.Module):
     def __init__(self, in_features : int, out_features : int, dropout : float=0, 
@@ -29,14 +31,16 @@ class dense(nn.Module):
         self.main_layer = nn.Linear(in_features, out_features)
         self.activation_function = activation_function
         self.batch_norm = nn.BatchNorm1d(in_features) if batch_norm else None
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout) if dropout is not None or 0 else None
 
         self.output_shape = out_features
 
 
     def forward(self, x : torch.Tensor) -> torch.Tensor:
+        x = self.main_layer(x)
         x = self.batch_norm(x) if self.batch_norm is not None else x
-        return self.dropout(self.activation_function((self.main_layer(x)))) 
+        x = self.activation_function(x)
+        return self.dropout(x) if self.dropout is not None else x
 
 class fire3d(nn.Module):
     def __init__(self, in_channels : int, squeeze_channels : int, expand_1x1x1_channels : int, expand_nxnxn_channels : int,
