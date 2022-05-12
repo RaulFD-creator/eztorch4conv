@@ -56,7 +56,6 @@ class fire3d(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.squeeze(x)
-        x = self.batch_norm(x) if self.batch_norm is not None else x
         x = self.squeeze_activation(x)
         x = torch.cat(
             [self.expand1x1(x), self.expandnxn(x)], 1
