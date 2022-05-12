@@ -103,9 +103,9 @@ def test_eztorch4conv_imported():
     trainer.compile(optimizer, nn.BCELoss(), device=DEVICE)
     trainer.input_shape = (6,16,16,16)
 
-    training_data = CustomDataset(os.path.join("..", "data", TRAINING_DATA), DATASET_PROPORTION, DEVICE)
+    training_data = CustomDataset(TRAINING_DATA, DATASET_PROPORTION, DEVICE)
     train_dataloader = DataLoader(training_data, batch_size=BATCH_SIZE, shuffle=True)
-    validation_data = CustomDataset("..", "data", TRAINING_DATA, DATASET_PROPORTION, DEVICE)
+    validation_data = CustomDataset(TRAINING_DATA, DATASET_PROPORTION, DEVICE)
     validate_dataloader = DataLoader(validation_data, batch_size=BATCH_SIZE, shuffle=True)
 
     trainer.train_model(train_dataloader, validate_dataloader,len(training_data), NUM_EPOCHS, BATCH_SIZE, METRICS)    
