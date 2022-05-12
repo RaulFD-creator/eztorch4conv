@@ -82,7 +82,7 @@ def test_eztorch4conv_imported():
     dcnn_model.features = nn.Sequential(
         ez.layers.conv3d(in_channels=6, out_channels=12, kernel_size=3, stride=1, dropout=DROPOUT_FEATURES,
                             batch_norm=BATCH_NORM, padding='same', activation_function=ACTIVATION_FUNCTION),
-        ez.layers.fire3d(in_channels=12, squeeze_channels=32, expand_1x1x1_channels=24, expandnxnxn_channels=24, 
+        ez.layers.fire3d(in_channels=12, squeeze_channels=32, expand_1x1x1_channels=24, expand_nxnxn_channels=24, 
                             dropout=DROPOUT_FEATURES, batch_norm=BATCH_NORM, activation_function=ACTIVATION_FUNCTION,
                             expand_kernel=5),
         ez.layers.InceptionD(in_channels=48, neurons_nxnxn=64, neurons_3x3x3=64, kernel_size=5),
