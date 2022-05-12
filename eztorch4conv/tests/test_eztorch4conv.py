@@ -98,7 +98,7 @@ def test_eztorch4conv_imported():
 
     trainer = ez.architectures.trainer(dcnn_model, MODEL_NAME, os.path.join("."), save_files=False)
     trainer.callbacks.append(ez.callbacks.checkpoint(metric='accuracy', target=0.70, model=trainer))
-    trainer.callbacks.append(ez.callbacks.early_stop(metric='accuracy', target=1e-6))
+    trainer.callbacks.append(ez.callbacks.early_stop(metric='accuracy', target=1e-6, model=trainer))
     optimizer = torch.optim.Adam(trainer.model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     trainer.compile(optimizer, nn.BCELoss(), device=DEVICE)
     trainer.input_shape = (6,16,16,16)
