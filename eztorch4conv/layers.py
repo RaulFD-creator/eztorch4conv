@@ -67,8 +67,7 @@ class fire3d(nn.Module):
 class InceptionD(nn.Module):
     def __init__(self, in_channels: int, neurons_nxnxn : int=192, neurons_3x3x3 : int=320, kernel_size : int=7) -> None:
         super().__init__()
-        if conv_block is None:
-            conv_block = conv3d
+        conv_block = conv3d
         self.branch3x3x3_1 = conv_block(in_channels, neurons_nxnxn, kernel_size=1, batch_norm=True)
         self.branch3x3x3_2 = conv_block(neurons_nxnxn, neurons_3x3x3, kernel_size=3, stride=2, batch_norm=True)
 
