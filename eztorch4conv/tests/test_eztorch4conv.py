@@ -54,7 +54,7 @@ class CustomDataset(Dataset):
         return image, label
 
 def test_eztorch4conv_imported():
-    input_parameters = ez.utils.parse_inputs("../data/input_params.json")
+    input_parameters = ez.utils.parse_inputs("eztorch4conv/data/input_params.json")
 
     # Global parameters that should not be changed
     TRAINING_DATA = input_parameters['training_data']
