@@ -54,12 +54,13 @@ class fire3d(nn.Module):
         self.expand1x1_activation = activation_function
         self.expandnxn = nn.Conv3d(squeeze_channels, expand_nxnxn_channels, kernel_size=expand_kernel, padding=expand_kernel//2)
         self.expandnxn_activation = activation_function
-        if batch_norm: self.batch_norm = nn.BatchNorm3d(in_channels)
-        if batch_norm: self.batch_norm_flag = batch_norm
+        self.batch_norm = nn.BatchNorm3d(in_channels) if batch_norm else None
         self.dropout = dropout
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.squeeze_activation(self.squeeze(self.batch_norm(x))) if self.batch_norm_flag else self.squeeze_activation(self.squeeze(x))
+        x = self.squeeze(x)
+        x = self.batch_norm(x) if self.batch_norm is not None else x
+        x = self.squeeze_activation(x)
         return torch.cat(
             [self.expand1x1_activation(self.expand1x1(x)), self.expandnxn_activation(self.expandnxn(x))], 1
         )
