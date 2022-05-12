@@ -27,7 +27,7 @@ class dense(nn.Module):
     def __init__(self, in_features : int, out_features : int, dropout : float=0, 
                 activation_function : torch.Tensor=nn.ELU(), batch_norm : bool=False) -> None:
         super().__init__()
-        self.main_layer = nn.Linear(in_features, out_features, kernel_size, stride, self.padding)
+        self.main_layer = nn.Linear(in_features, out_features)
         self.batch_norm = nn.BatchNorm1d(out_features) if batch_norm else None
         self.activation_function = activation_function
         self.dropout = nn.Dropout(dropout)
