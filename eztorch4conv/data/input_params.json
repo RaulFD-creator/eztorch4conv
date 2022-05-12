@@ -1,5 +1,5 @@
 {
-    "training_data": "dataset/reccord.csv",
+    "training_data": "eztorch4conv/data/dataset/reccord.csv",
     "batch_size": 32,
     "num_epochs": 20,
     "lr": 1e-4,
