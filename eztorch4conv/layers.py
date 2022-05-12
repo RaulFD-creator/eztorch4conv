@@ -49,19 +49,20 @@ class fire3d(nn.Module):
         self.squeeze = nn.Conv3d(in_channels, squeeze_channels, kernel_size=1)
         self.squeeze_activation = activation_function
         self.expand1x1 = nn.Conv3d(squeeze_channels, expand_1x1x1_channels, kernel_size=1)
-        self.expand1x1_activation = activation_function
         self.expandnxn = nn.Conv3d(squeeze_channels, expand_nxnxn_channels, kernel_size=expand_kernel, padding=expand_kernel//2)
-        self.expandnxn_activation = activation_function
-        self.batch_norm = nn.BatchNorm3d(out_channels) if batch_norm else None
+        self.activation = activation_function
+        self.batch_norm = nn.BatchNorm3d(expand_1x1x1_channels) if batch_norm else None
         self.dropout = dropout
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.squeeze(x)
         x = self.batch_norm(x) if self.batch_norm is not None else x
         x = self.squeeze_activation(x)
-        return torch.cat(
-            [self.expand1x1_activation(self.expand1x1(x)), self.expandnxn_activation(self.expandnxn(x))], 1
+        x = torch.cat(
+            [self.expand1x1(x), self.expandnxn(x)], 1
         )
+        x = self.batch_norm(x) if self.batch_norm is not None else x
+        return self.activation(x)
 
 class InceptionD(nn.Module):
     def __init__(self, in_channels: int, neurons_nxnxn : int=192, neurons_3x3x3 : int=320, kernel_size : int=7) -> None:
