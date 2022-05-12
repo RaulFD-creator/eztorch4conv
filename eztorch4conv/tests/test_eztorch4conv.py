@@ -19,7 +19,7 @@ import os
 
 class CustomDataset(Dataset):
 
-    def __init__(self, annotations_file, proportion, device='cpu'):
+    def __init__(self, annotations_file, proportion, device='cpu', augment=False):
         self.labels = pd.read_csv(annotations_file)
         self.labels = self.labels.sample(frac=1, random_state=2812).reset_index(drop=True)
         self.device = device
@@ -33,6 +33,7 @@ class CustomDataset(Dataset):
         images = list(self.labels.iloc[:, 0])
         ground_truths = list(self.labels.iloc[:, 1])
         self.labels = [(images[i],  ground_truths[i]) for i in range(len(images))]
+        self.augment = augment
 
         # Augmentation
         torch.manual_seed(2812)
@@ -48,7 +49,8 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
 
         item = self.labels[idx]
-        image = (self.z_flip(self.y_flip(self.x_flip(torch.load(item[0]).float().to(self.device)))))
+        if self.augment: image = (self.z_flip(self.y_flip(self.x_flip(torch.load(item[0]).float().to(self.device))))) 
+        else: torch.load(item[0]).float().to(self.device)
         label = item[1]
 
         return image, label
@@ -103,9 +105,9 @@ def test_eztorch4conv_imported():
     trainer.compile(optimizer, nn.BCELoss(), device=DEVICE)
     trainer.input_shape = (6,16,16,16)
 
-    training_data = CustomDataset(TRAINING_DATA, DATASET_PROPORTION, DEVICE)
+    training_data = CustomDataset(TRAINING_DATA, DATASET_PROPORTION, DEVICE, True)
     train_dataloader = DataLoader(training_data, batch_size=BATCH_SIZE, shuffle=True)
-    validation_data = CustomDataset(TRAINING_DATA, DATASET_PROPORTION, DEVICE)
+    validation_data = CustomDataset(TRAINING_DATA, DATASET_PROPORTION, DEVICE, False)
     validate_dataloader = DataLoader(validation_data, batch_size=BATCH_SIZE, shuffle=True)
 
     trainer.train_model(train_dataloader, validate_dataloader,len(training_data), NUM_EPOCHS, BATCH_SIZE, METRICS)    
