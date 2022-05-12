@@ -12,11 +12,10 @@ class conv3d(nn.Module):
         if not (isinstance(padding, int) or isinstance(padding, tuple)): self.padding = kernel_size // 2 if padding == 'same' else 0
         else: self.padding = padding
 
-        self.batch_norm = nn.BatchNorm3d(in_channels) if batch_norm else None
         self.main_layer = nn.Conv3d(in_channels, out_channels, kernel_size, stride, self.padding)
+        self.batch_norm = nn.BatchNorm3d(out_channels) if batch_norm else None
         self.activation_function = activation_function
         self.dropout = nn.Dropout(dropout)
-
     
     def forward(self, x : torch.Tensor) -> torch.Tensor:
         x = self.main_layer(x)
@@ -28,13 +27,12 @@ class dense(nn.Module):
     def __init__(self, in_features : int, out_features : int, dropout : float=0, 
                 activation_function : torch.Tensor=nn.ELU(), batch_norm : bool=False) -> None:
         super().__init__()
-        self.main_layer = nn.Linear(in_features, out_features)
+        self.main_layer = nn.Conv3d(in_channels, out_channels, kernel_size, stride, self.padding)
+        self.batch_norm = nn.BatchNorm1d(out_channels) if batch_norm else None
         self.activation_function = activation_function
-        self.batch_norm = nn.BatchNorm1d(in_features) if batch_norm else None
-        self.dropout = nn.Dropout(dropout) if dropout is not None or 0 else None
+        self.dropout = nn.Dropout(dropout)
 
         self.output_shape = out_features
-
 
     def forward(self, x : torch.Tensor) -> torch.Tensor:
         x = self.main_layer(x)
@@ -54,7 +52,7 @@ class fire3d(nn.Module):
         self.expand1x1_activation = activation_function
         self.expandnxn = nn.Conv3d(squeeze_channels, expand_nxnxn_channels, kernel_size=expand_kernel, padding=expand_kernel//2)
         self.expandnxn_activation = activation_function
-        self.batch_norm = nn.BatchNorm3d(in_channels) if batch_norm else None
+        self.batch_norm = nn.BatchNorm3d(out_channels) if batch_norm else None
         self.dropout = dropout
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
