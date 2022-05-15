@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class conv3d(nn.Module):
     def __init__(self, in_channels : int, out_channels : int, kernel_size : int=3 or tuple, stride : int=1,  
-                dropout : float=0, batch_norm : bool=False, padding : str='valid',
+                dropout : float=0, batch_norm : bool=False, padding : str='same',
                 activation_function : torch.Tensor=nn.ELU(inplace=True)) -> None:
         super().__init__()
 
