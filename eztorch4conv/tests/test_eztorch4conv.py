@@ -50,7 +50,7 @@ class CustomDataset(Dataset):
 
         item = self.labels[idx]
         if self.augment: image = (self.z_flip(self.y_flip(self.x_flip(torch.load(item[0]).float().to(self.device))))) 
-        else: torch.load(item[0]).float().to(self.device)
+        else: image = torch.load(item[0]).float().to(self.device)
         label = item[1]
 
         return image, label
