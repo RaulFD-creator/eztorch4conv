@@ -80,16 +80,14 @@ class InceptionD(nn.Module):
     def _forward(self, x: torch.Tensor) -> List[torch.Tensor]:
         branch3x3 = self.branch3x3x3_1(x)
         branch3x3 = self.branch3x3x3_2(branch3x3)
-        branch3z3 = nn.functional.maxpool3d(branch3x3, kernel_size=2, stride=2)
 
         branch7x7x7 = self.branch7x7x7_1(x)
         branch7x7x7 = self.branch7x7x7_2(branch7x7x7)
         branch7x7x7 = self.branch7x7x7_3(branch7x7x7)
         branch7x7x7 = self.branch7x7x7_4(branch7x7x7)
         branch7x7x7 = self.branch7x7x7_5(branch7x7x7)
-        branch7x7x7 = nn.functional.max_pool3d(branch7x7x7, kernel_size, stride=2)
 
-        branch_pool = nn.functional.max_pool3d(x, kernel_size=2, stride=2)
+        branch_pool = x
         outputs = [branch3x3, branch7x7x7, branch_pool]
         return outputs
 
