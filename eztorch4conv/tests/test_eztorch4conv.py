@@ -93,7 +93,7 @@ def test_eztorch4conv_imported():
 
     dcnn_model.flatten = nn.Flatten()
     dcnn_model.classifier = nn.Sequential(
-        ez.layers.dense(in_features=128, out_features=1, dropout=0,
+        ez.layers.dense(in_features=11264, out_features=1, dropout=0,
                             activation_function=nn.Sigmoid(), batch_norm=True),
         
     )
