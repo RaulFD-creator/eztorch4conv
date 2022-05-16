@@ -1,5 +1,4 @@
 from typing import List
-import copy
 import torch
 import torch.nn as nn
 
