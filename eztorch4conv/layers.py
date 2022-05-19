@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class conv3d(nn.Module):
     def __init__(self, in_channels : int, out_channels : int, kernel_size : int=3 or tuple, stride : int=1,  
-                dropout : float=0, batch_norm : bool=False, padding : str='same',
+                dropout : float=0, batch_norm : bool=False, padding : str='valid',
                 activation_function : torch.Tensor=nn.ELU(inplace=True)) -> None:
         super().__init__()
 
@@ -31,16 +31,15 @@ class multi_conv3d(nn.Module):
         super().__init__()
 
         # Parsing inputs
-        if not (isinstance(padding, int)): self.padding = kernel_size // 2 if padding == 'same' else 0
+        if not (isinstance(padding, int)): self.padding = kernel_size // 2  if padding == 'same' else 0
         else: self.padding = padding
         self.main_layer_0 = nn.Conv3d(in_channels, out_channels, 1)
-        self.main_layer_1 = conv3d(out_channels, out_channels, (0, 0, kernel_size), stride, dropout,
-                                    batch_norm, (0, 0, kernel_size//2), activation_function)
-        self.main_layer_2 = conv3d(out_channels, out_channels, (0, 0, kernel_size), stride, dropout,
-                                    batch_norm, (0, 0, kernel_size//2), activation_function)
-        self.main_layer_3 = conv3d(out_channels, out_channels, (0, 0, kernel_size), stride, dropout,
-                                    batch_norm, (0, 0, kernel_size//2), activation_function)
-
+        self.main_layer_1 = conv3d(out_channels, out_channels, (1, 1, kernel_size), stride, dropout,
+                                    batch_norm, (0, 0, self.padding), activation_function)
+        self.main_layer_2 = conv3d(out_channels, out_channels, (1, kernel_size, 1), stride, dropout,
+                                    batch_norm, (0, self.padding, 0), activation_function)
+        self.main_layer_3 = conv3d(out_channels, out_channels, (kernel_size, 1, 1), stride, dropout,
+                                    batch_norm, (self.padding, 0, 0), activation_function)
     def forward(self, x : torch.Tensor) -> torch.Tensor:
         x = self.main_layer_0(x)
         x = self.main_layer_1(x)
@@ -50,20 +49,20 @@ class multi_conv3d(nn.Module):
 
 class res_conv3d(nn.Module):
     def __init__(self, in_channels : int, out_channels : int, kernel_size : int=3 or tuple, stride : int=1,  
-                dropout : float=0, batch_norm : bool=False, multi_kernel : bool=False,
+                dropout : float=0, batch_norm : bool=False, multi_kernel : bool=False, padding :str='same',
                 activation_function : torch.Tensor=nn.ELU(inplace=True)) -> None:
         super().__init__()
 
         # Padding is introduced forcibly to avoid dimension inconsistencies when concatenating with inputs
         if multi_kernel: 
             self.main_layer = multi_conv3d(in_channels, out_channels, kernel_size, stride, 
-                                            dropout, batch_norm, kernel_size//2, activation_function)
+                                            dropout, batch_norm, padding, activation_function)
         else:
             self.main_layer = conv3d(in_channels, out_channels, kernel_size, stride, dropout, batch_norm,
-                                    kernel_size//2, activation_function)
+                                    padding, activation_function)
     
     def forward(self, x : torch.Tensor) -> torch.Tensor:
-        return torch.cat([x,self.main_layer(x)])
+        return torch.cat([x, self.main_layer(x)], 1)
 
             
 
@@ -90,10 +89,10 @@ class fire3d(nn.Module):
                 expand_kernel : int=3) -> None:
         super().__init__()
         self.in_channels = in_channels
-        self.squeeze = nn.Conv3d(in_channels, squeeze_channels, kernel_size=1)
+        self.squeeze = nn.Conv3d(in_channels, squeeze_channels, kernel_size=1, padding='same')
         self.squeeze_activation = activation_function
-        self.expand1x1 = nn.Conv3d(squeeze_channels, expand_1x1x1_channels, kernel_size=1)
-        self.expandnxn = nn.Conv3d(squeeze_channels, expand_nxnxn_channels, kernel_size=expand_kernel, padding=expand_kernel//2)
+        self.expand1x1 = nn.Conv3d(squeeze_channels, expand_1x1x1_channels, kernel_size=1, padding='same')
+        self.expandnxn = nn.Conv3d(squeeze_channels, expand_nxnxn_channels, kernel_size=expand_kernel, padding='same')
         self.activation = activation_function
         self.batch_norm = nn.BatchNorm3d(expand_1x1x1_channels+expand_nxnxn_channels) if batch_norm else None
         self.dropout = dropout

@@ -6,7 +6,7 @@ import os
 import copy
 import time
 
-class trainer():
+class trainer3d():
 
     def __init__(self, model, name, path, save_files=True) -> None:
         self.available_metrics = ['accuracy', 'loss', 'sensitivity', 'specificity', 'precision', 'recall',
@@ -361,6 +361,68 @@ class trainer():
             print("| Stopping training |")
             print("-"*21)
             self.stop_training = True
+
+            
+class regression_trainer(trainer3d):
+    def train_model(self, train_dataloader, validate_dataloader, 
+                    len_training, len_validation, epochs, batch_size):
+        self.history = {}
+        for epoch in range(epochs):
+            self.history[epoch] = {}
+        for mode in ['train', 'validate']:
+            self.history[epoch][mode] = {}
+        # Training loop
+        for epoch in range(epochs):
+
+            # Loop through 2 modes: Training and validation
+            for mode in ['train', 'validate']:
+                loss_counter = 0
+
+                # Set the model to the appropriate mode
+                self.model.train() if mode == 'train' else self.model.eval()
+                
+                # Loop through the items in the DataLoaders
+                for i, (inputs, labels) in enumerate(train_dataloader if mode == 'train' else validate_dataloader):
+                    inputs = inputs.float()
+                    # Load data and send to device
+                    labels = labels.unsqueeze(1).float()
+
+                    # Clear gradients
+                    self.model.optimizer.zero_grad()
+
+                    # Prepare gradients if in training mode
+                    with torch.set_grad_enabled(mode == 'train'):  
+
+                        # If training mode, foward propagation; 
+                        # if validation  mode, evaluate samples
+                        outputs = self.model(inputs)
+                        # Calculate loss
+                        loss = self.model.error(outputs, labels)
+                    loss_counter += loss / (len_training//batch_size) if mode == 'train' else loss / (len_validation//batch_size)
+                    self.history[epoch][mode] = loss_counter
+
+                    if mode == 'train':
+
+                        # Calculating gradients
+                        loss.backward()
+                        # Update parameters
+                        self.model.optimizer.step()
+
+                # Check callbacks
+                if mode == 'validate': self._check_callbacks(epoch)
+       
+        return self.model, self.history
+        
+class dnn(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.layers = []
+        message = "\nUsing DNN architecture"
+        print(message)
+        print("*"*len(message))
+    
+    def forward(self, x):
+        return self.layers(x)
 
 class dcnn(nn.Module):
     def __init__(self) -> None:
