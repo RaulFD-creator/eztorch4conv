@@ -87,7 +87,6 @@ def test_eztorch4conv_imported():
         ez.layers.fire3d(in_channels=12, squeeze_channels=32, expand_1x1x1_channels=24, expand_nxnxn_channels=24, 
                             dropout=DROPOUT_FEATURES, batch_norm=BATCH_NORM, activation_function=ACTIVATION_FUNCTION,
                             expand_kernel=5),
-        ez.layers.InceptionD(in_channels=48, neurons_nxnxn=64, neurons_3x3x3=64, kernel_size=5),
         nn.MaxPool3d(kernel_size=2)
     )
 
