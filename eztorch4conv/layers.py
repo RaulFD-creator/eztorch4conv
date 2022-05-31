@@ -13,13 +13,13 @@ class conv3d(nn.Module):
         else: self.padding = padding
 
         self.main_layer = nn.Conv3d(in_channels, out_channels, kernel_size, stride, self.padding)
-        self.batch_norm = nn.BatchNorm3d(out_channels) if batch_norm else None
+        self.batch_norm = nn.BatchNorm3d(in_channels) if batch_norm else None
         self.activation_function = activation_function
         self.dropout = nn.Dropout(dropout)
     
     def forward(self, x : torch.Tensor) -> torch.Tensor:
-        x = self.main_layer(x)
         x = self.batch_norm(x) if self.batch_norm is not None else x
+        x = self.main_layer(x)
         x = self.activation_function(x)
         return self.dropout(x) if self.dropout is not None else x
 

@@ -5,7 +5,8 @@ DCNN and MC-DCNN models
 
 # Add imports here
 from .callbacks import Callback, early_stop, checkpoint
-from .architectures import dcnn, trainer3d, mcdcnn, regression_trainer
+from .trainers import trainer3d, regression_trainer
+from .models import dcnn, mcdcnn, dnn, Channel
 from .layers import conv3d, dense, fire3d
 from .utils import parse_inputs, random_x_flip, random_y_flip, random_z_flip
 
