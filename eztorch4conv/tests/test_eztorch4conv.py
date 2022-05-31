@@ -87,18 +87,17 @@ def test_eztorch4conv_imported():
         ez.layers.fire3d(in_channels=12, squeeze_channels=32, expand_1x1x1_channels=24, expand_nxnxn_channels=24, 
                             dropout=DROPOUT_FEATURES, batch_norm=BATCH_NORM, activation_function=ACTIVATION_FUNCTION,
                             expand_kernel=5),
-        ez.layers.InceptionD(in_channels=48, neurons_nxnxn=64, neurons_3x3x3=64, kernel_size=5),
         nn.MaxPool3d(kernel_size=2)
     )
 
     dcnn_model.flatten = nn.Flatten()
     dcnn_model.classifier = nn.Sequential(
-        ez.layers.dense(in_features=11264, out_features=1, dropout=0,
+        ez.layers.dense(in_features=24576, out_features=1, dropout=0,
                             activation_function=nn.Sigmoid(), batch_norm=True),
         
     )
 
-    trainer = ez.architectures.trainer(dcnn_model, MODEL_NAME, os.path.join("."), save_files=False)
+    trainer = ez.architectures.trainer3d(dcnn_model, MODEL_NAME, os.path.join("."), save_files=False)
     trainer.callbacks.append(ez.callbacks.checkpoint(metric='accuracy', target=0.70, model=trainer))
     trainer.callbacks.append(ez.callbacks.early_stop(metric='accuracy', target=1e-6, model=trainer))
     optimizer = torch.optim.Adam(trainer.model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
