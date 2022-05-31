@@ -42,7 +42,6 @@ class CustomDataset(Dataset):
         self.z_flip = ez.utils.random_z_flip(p=0.5)
         self.rotation = torchvision.transforms.RandomRotation(degrees=10)
 
-
     def __len__(self):
         return len(self.labels)
     
@@ -80,7 +79,7 @@ def test_eztorch4conv_imported():
         ACTIVATION_FUNCTION = nn.ELU(inplace=True)
 
     # Define the model
-    dcnn_model = ez.architectures.dcnn()
+    dcnn_model = ez.models.dcnn()
     dcnn_model.features = nn.Sequential(
         ez.layers.conv3d(in_channels=6, out_channels=12, kernel_size=3, stride=1, dropout=DROPOUT_FEATURES,
                             batch_norm=BATCH_NORM, padding='same', activation_function=ACTIVATION_FUNCTION),
@@ -97,7 +96,7 @@ def test_eztorch4conv_imported():
         
     )
 
-    trainer = ez.architectures.trainer3d(dcnn_model, MODEL_NAME, os.path.join("."), save_files=False)
+    trainer = ez.trainers.trainer3d(dcnn_model, MODEL_NAME, os.path.join("."), save_files=False)
     trainer.callbacks.append(ez.callbacks.checkpoint(metric='accuracy', target=0.70, model=trainer))
     trainer.callbacks.append(ez.callbacks.early_stop(metric='accuracy', target=1e-6, model=trainer))
     optimizer = torch.optim.Adam(trainer.model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
