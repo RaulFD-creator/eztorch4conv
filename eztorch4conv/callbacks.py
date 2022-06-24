@@ -21,7 +21,7 @@ class Callback():
 
     Attributes
     ----------
-    model : DNN or MCDNN class object
+    model : torch.nn.Module class object
             model for which the callback is created
 
     metric : str
@@ -37,18 +37,23 @@ class Callback():
 
         Parameters
         ----------
-        model : DCNN or MCDCNN class object
-                model for which the callback is created
+        model : torch.nn.Module class object
+            model for which the callback is created
 
         metric : str
-                Name of the parameter that has to be checked to verify the condition
+            Name of the parameter that has to be checked to verify the condition
 
         target : int or float
-                Value the metric has to achieve to satisfy the condition            
+            Value the metric has to achieve to satisfy the condition  
+                
+        action : fun
+            Function that will be executed upon model when the metric has
+            reached target.
         """
         self.metric = metric
         self.target = target
         self.model = model
+        self.action = action
 
     def check_condition(self, epoch):
         """
@@ -85,7 +90,7 @@ class early_stop(Callback):
 
     Methods
     -------
-    action() : Saves the model and stops training
+    action(epoch) : Saves the model and stops training
     """    
     def action(self, epoch):
         self.model._save_model(epoch, final=True)
@@ -114,7 +119,7 @@ class checkpoint(early_stop):
 
     Methods
     -------
-    action() : Saves the model
+    action(epoch) : Saves the model
     """    
     def action(self, epoch):
         self.model._save_model(epoch, final=False)
