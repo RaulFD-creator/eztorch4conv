@@ -53,7 +53,8 @@ class Callback():
         self.metric = metric
         self.target = target
         self.model = model
-        self.action = action
+        if action is not None:
+           self.action = action
 
     def check_condition(self, epoch):
         """
